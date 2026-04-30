@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UsernameForm } from "@/domains/auth/components/UsernameForm";
 import { PasswordForm } from "@/domains/auth/components/PasswordForm";
+import { ProfilePictureUpload } from "@/domains/auth/components/ProfilePictureUpload";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -43,7 +44,13 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-6 space-y-4">
+      <main className="max-w-2xl mx-auto px-6 py-6 space-y-6">
+        <div className="bg-card/50 rounded-xl p-6 border border-border/40">
+          <ProfilePictureUpload
+            currentAvatarUrl={me.avatarUrl}
+            username={me.username}
+          />
+        </div>
         <UsernameForm currentUsername={me.username} />
         <PasswordForm />
       </main>

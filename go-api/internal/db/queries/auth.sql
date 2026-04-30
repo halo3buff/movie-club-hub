@@ -21,3 +21,7 @@ UPDATE users SET username = $1 WHERE id = $2;
 
 -- name: UpdateUserPassword :exec
 UPDATE users SET password_hash = $1 WHERE id = $2;
+
+-- name: UpdateUserAvatar :one
+UPDATE users SET avatar_url = $1 WHERE id = $2
+RETURNING id, username, password_hash, created_at, avatar_url;

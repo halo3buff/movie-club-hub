@@ -175,6 +175,8 @@ func main() {
 
 			r.Patch("/me/username", h.UpdateUsername)
 			r.Patch("/me/password", h.UpdatePassword)
+			r.Post("/me/avatar/upload-url", h.GetAvatarUploadURL)
+			r.Patch("/me/avatar", h.UpdateAvatar)
 
 			r.Post("/groups/{groupId}/watch-status", h.SetWatchStatus)
 

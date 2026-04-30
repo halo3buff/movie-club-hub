@@ -110,6 +110,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /me/avatar/upload-url:
+    post:
+      operationId: getAvatarUploadUrl
+      tags: [auth]
+      summary: Get a signed URL for uploading a profile picture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetAvatarUploadUrlBody"
+      responses:
+        "200":
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+
+  /me/avatar:
+    patch:
+      operationId: updateAvatar
+      tags: [auth]
+      summary: Update user's profile picture URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAvatarBody"
+      responses:
+        "200":
+          description: Avatar updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
   /movies/search:
     get:
       operationId: searchMovies
@@ -922,10 +960,31 @@ components:
           type: string
         createdAt:
           type: string
+        avatarUrl:
+          type: ["string", "null"]
       required:
         - id
         - username
         - createdAt
+
+    GetAvatarUploadUrlBody:
+      type: object
+      properties:
+        filename:
+          type: string
+        contentType:
+          type: string
+      required:
+        - filename
+        - contentType
+
+    UpdateAvatarBody:
+      type: object
+      properties:
+        avatarUrl:
+          type: string
+      required:
+        - avatarUrl
 
     MovieSearchResult:
       type: object

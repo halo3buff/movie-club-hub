@@ -8,14 +8,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Upload, X } from "lucide-react";
-import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES } from "@/components/ImageCropModal";
 
-interface StickerUploadModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  groupId?: number;
-  onUploadComplete: () => void;
-}
+export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number) {
   return centerCrop(
@@ -25,17 +20,30 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number) {
   );
 }
 
-export function StickerUploadModal({
+interface ImageCropModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCropComplete: (croppedBlob: Blob, originalFile: File) => Promise<void>;
+  title: string;
+  maxSize?: number;
+  uploading?: boolean;
+  error?: string | null;
+  circularPreview?: boolean;
+}
+
+export function ImageCropModal({
   open,
   onOpenChange,
-  groupId,
-  onUploadComplete,
-}: StickerUploadModalProps) {
+  onCropComplete,
+  title,
+  maxSize = 512,
+  uploading = false,
+  error: externalError,
+  circularPreview = false,
+}: ImageCropModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>();
-  const [name, setName] = useState("");
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -57,7 +65,6 @@ export function StickerUploadModal({
 
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
-    setName(file.name.replace(/\.[^/.]+$/, ""));
   };
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -82,7 +89,7 @@ export function StickerUploadModal({
       height: (crop.height / 100) * image.height * scaleY,
     };
 
-    const size = Math.min(512, Math.max(pixelCrop.width, pixelCrop.height));
+    const size = Math.min(maxSize, Math.max(pixelCrop.width, pixelCrop.height));
     canvas.width = size;
     canvas.height = size;
 
@@ -114,70 +121,17 @@ export function StickerUploadModal({
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !name.trim()) {
-      setError("Please select a file and enter a name");
+    if (!selectedFile) {
+      setError("Please select a file");
       return;
     }
 
-    setUploading(true);
-    setError(null);
-
     try {
       const croppedBlob = await getCroppedImage();
-
-      const uploadUrlRes = await fetch("/api/stickers/upload-url", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: `${name}.${selectedFile.type.split("/")[1]}`,
-          contentType: selectedFile.type,
-          groupId: groupId ?? null,
-        }),
-      });
-
-      if (!uploadUrlRes.ok) {
-        const err = await uploadUrlRes.json();
-        throw new Error(err.error || "Failed to get upload URL");
-      }
-
-      const { uploadUrl, publicUrl } = await uploadUrlRes.json();
-
-      const uploadRes = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": selectedFile.type },
-        body: croppedBlob,
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error("Failed to upload file");
-      }
-
-      const createUrl = groupId
-        ? `/api/groups/${groupId}/stickers`
-        : "/api/stickers";
-
-      const createRes = await fetch(createUrl, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          imageUrl: publicUrl,
-        }),
-      });
-
-      if (!createRes.ok) {
-        const err = await createRes.json();
-        throw new Error(err.error || "Failed to create sticker");
-      }
-
-      onUploadComplete();
+      await onCropComplete(croppedBlob, selectedFile);
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
+      setError(err instanceof Error ? err.message : "Failed to crop image");
     }
   };
 
@@ -185,17 +139,18 @@ export function StickerUploadModal({
     setSelectedFile(null);
     setPreviewUrl(null);
     setCrop(undefined);
-    setName("");
     setError(null);
     onOpenChange(false);
   };
+
+  const displayError = externalError || error;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-primary font-black uppercase">
-            Upload Sticker
+            {title}
           </DialogTitle>
         </DialogHeader>
 
@@ -231,7 +186,7 @@ export function StickerUploadModal({
                   crop={crop}
                   onChange={(_, percentCrop) => setCrop(percentCrop)}
                   aspect={1}
-                  circularCrop={false}
+                  circularCrop={circularPreview}
                 >
                   <img
                     ref={imgRef}
@@ -242,19 +197,11 @@ export function StickerUploadModal({
                   />
                 </ReactCrop>
               </div>
-
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Sticker name"
-                className="w-full px-4 py-3 bg-card border-4 border-secondary text-white font-bold focus:border-primary outline-none"
-              />
             </div>
           )}
 
-          {error && (
-            <p className="text-red-400 text-sm font-medium">{error}</p>
+          {displayError && (
+            <p className="text-red-400 text-sm font-medium">{displayError}</p>
           )}
 
           <div className="flex gap-3">
@@ -266,10 +213,10 @@ export function StickerUploadModal({
             </button>
             <button
               onClick={handleUpload}
-              disabled={!selectedFile || !name.trim() || uploading}
+              disabled={!selectedFile || uploading}
               className="flex-1 px-4 py-3 bg-primary border-4 border-secondary text-secondary font-black uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
             >
-              {uploading ? "Uploading..." : "Upload"}
+              {uploading ? "Uploading..." : "Save"}
             </button>
           </div>
         </div>

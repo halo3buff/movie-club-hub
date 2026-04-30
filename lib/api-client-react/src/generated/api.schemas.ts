@@ -47,6 +47,17 @@ export interface User {
   id: number;
   username: string;
   createdAt: string;
+  /** @nullable */
+  avatarUrl?: string | null;
+}
+
+export interface GetAvatarUploadUrlBody {
+  filename: string;
+  contentType: string;
+}
+
+export interface UpdateAvatarBody {
+  avatarUrl: string;
 }
 
 export interface MovieSearchResult {

@@ -2,8 +2,10 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/adnanshoukfeh/movie-club-hub/go-api/internal/db"
@@ -17,9 +19,10 @@ type authRequest struct {
 }
 
 type userResponse struct {
-	ID        int32  `json:"id"`
-	Username  string `json:"username"`
-	CreatedAt string `json:"createdAt"`
+	ID        int32   `json:"id"`
+	Username  string  `json:"username"`
+	CreatedAt string  `json:"createdAt"`
+	AvatarURL *string `json:"avatarUrl,omitempty"`
 }
 
 func toUserResponse(u db.User) userResponse {
@@ -27,6 +30,7 @@ func toUserResponse(u db.User) userResponse {
 		ID:        u.ID,
 		Username:  u.Username,
 		CreatedAt: u.CreatedAt.Format("2006-01-02T15:04:05.000Z"),
+		AvatarURL: u.AvatarUrl,
 	}
 }
 
@@ -185,6 +189,15 @@ type updatePasswordRequest struct {
 	NewPassword     string `json:"newPassword"`
 }
 
+type avatarUploadURLRequest struct {
+	Filename    string `json:"filename"`
+	ContentType string `json:"contentType"`
+}
+
+type updateAvatarRequest struct {
+	AvatarURL string `json:"avatarUrl"`
+}
+
 func (h *Handler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	var req updatePasswordRequest
 	if err := decodeBody(r, &req); err != nil {
@@ -206,4 +219,69 @@ func (h *Handler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeMessage(w, http.StatusOK, "Password updated")
+}
+
+func (h *Handler) GetAvatarUploadURL(w http.ResponseWriter, r *http.Request) {
+	if h.gcsSvc == nil || !h.gcsSvc.IsConfigured() {
+		writeError(w, http.StatusServiceUnavailable, "File uploads are not configured")
+		return
+	}
+
+	var req avatarUploadURLRequest
+	if err := decodeBody(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Filename == "" || req.ContentType == "" {
+		writeError(w, http.StatusBadRequest, "filename and contentType are required")
+		return
+	}
+
+	ext, ok := allowedContentTypes[req.ContentType]
+	if !ok {
+		writeError(w, http.StatusBadRequest, "Invalid content type. Allowed: image/png, image/jpeg, image/gif, image/webp")
+		return
+	}
+
+	userID := h.userID(r)
+	objectName := fmt.Sprintf("avatars/%d/%s%s", userID, uuid.New().String(), ext)
+
+	result, err := h.gcsSvc.GenerateUploadURL(r.Context(), objectName, req.ContentType)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to generate upload URL")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"uploadUrl":  result.UploadURL,
+		"objectName": result.ObjectName,
+		"publicUrl":  result.PublicURL,
+	})
+}
+
+func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+	var req updateAvatarRequest
+	if err := decodeBody(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.AvatarURL == "" {
+		writeError(w, http.StatusBadRequest, "avatarUrl is required")
+		return
+	}
+
+	userID := h.userID(r)
+
+	user, err := h.q.UpdateUserAvatar(r.Context(), db.UpdateUserAvatarParams{
+		AvatarUrl: &req.AvatarURL,
+		ID:        userID,
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to update avatar")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, toUserResponse(user))
 }

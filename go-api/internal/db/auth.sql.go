@@ -72,6 +72,29 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	return i, err
 }
 
+const updateUserAvatar = `-- name: UpdateUserAvatar :one
+UPDATE users SET avatar_url = $1 WHERE id = $2
+RETURNING id, username, password_hash, created_at, avatar_url
+`
+
+type UpdateUserAvatarParams struct {
+	AvatarUrl *string `json:"avatar_url"`
+	ID        int32   `json:"id"`
+}
+
+func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserAvatar, arg.AvatarUrl, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.AvatarUrl,
+	)
+	return i, err
+}
+
 const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users SET password_hash = $1 WHERE id = $2
 `

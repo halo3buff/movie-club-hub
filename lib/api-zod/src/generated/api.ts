@@ -32,6 +32,7 @@ export const LoginResponse = zod.object({
   id: zod.number(),
   username: zod.string(),
   createdAt: zod.string(),
+  avatarUrl: zod.string().nullish(),
 });
 
 /**
@@ -68,6 +69,35 @@ export const GetMeResponse = zod.object({
   id: zod.number(),
   username: zod.string(),
   createdAt: zod.string(),
+  avatarUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary Get a signed URL for uploading a profile picture
+ */
+export const GetAvatarUploadUrlBody = zod.object({
+  filename: zod.string(),
+  contentType: zod.string(),
+});
+
+export const GetAvatarUploadUrlResponse = zod.object({
+  uploadUrl: zod.string(),
+  objectName: zod.string(),
+  publicUrl: zod.string(),
+});
+
+/**
+ * @summary Update user's profile picture URL
+ */
+export const UpdateAvatarBody = zod.object({
+  avatarUrl: zod.string(),
+});
+
+export const UpdateAvatarResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  createdAt: zod.string(),
+  avatarUrl: zod.string().nullish(),
 });
 
 /**
@@ -450,6 +480,7 @@ export const GetDashboardResponse = zod.object({
     id: zod.number(),
     username: zod.string(),
     createdAt: zod.string(),
+    avatarUrl: zod.string().nullish(),
   }),
   groups: zod.array(
     zod.object({
