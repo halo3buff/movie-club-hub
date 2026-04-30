@@ -7,10 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
+import {
+  MAX_FILE_SIZE,
+  ALLOWED_IMAGE_TYPES,
+  ACCEPTED_IMAGE_EXTENSIONS,
+  isValidImageType,
+  normalizeImageToPng,
+} from "@/lib/imageUtils";
 
-export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+export { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES };
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number) {
   return centerCrop(
@@ -45,26 +51,37 @@ export function ImageCropModal({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [error, setError] = useState<string | null>(null);
+  const [converting, setConverting] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setError(null);
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setError("Invalid file type. Use PNG, JPG, GIF, or WEBP.");
+    if (!isValidImageType(file)) {
+      setError("Invalid file type. Use PNG, JPG, GIF, WEBP, or HEIC.");
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setError("File too large. Maximum 2MB.");
+      setError("File too large. Maximum 10MB.");
       return;
     }
 
     setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    setConverting(true);
+
+    try {
+      const pngBlob = await normalizeImageToPng(file);
+      setPreviewUrl(URL.createObjectURL(pngBlob));
+    } catch (err) {
+      setError("Failed to process image. Please try a different file.");
+      setSelectedFile(null);
+    } finally {
+      setConverting(false);
+    }
   };
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -114,8 +131,8 @@ export function ImageCropModal({
           if (blob) resolve(blob);
           else reject(new Error("Failed to create blob"));
         },
-        selectedFile?.type || "image/png",
-        0.9
+        "image/png",
+        1
       );
     });
   };
@@ -155,16 +172,21 @@ export function ImageCropModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {!previewUrl ? (
+          {converting ? (
+            <div className="flex flex-col items-center justify-center w-full h-48 border-4 border-dashed border-white/30 rounded-lg">
+              <Loader2 className="w-12 h-12 text-primary animate-spin mb-2" />
+              <span className="text-white/70">Processing image...</span>
+            </div>
+          ) : !previewUrl ? (
             <label className="flex flex-col items-center justify-center w-full h-48 border-4 border-dashed border-white/30 rounded-lg cursor-pointer hover:border-primary transition-colors">
               <Upload className="w-12 h-12 text-white/50 mb-2" />
               <span className="text-white/70">Click to select image</span>
               <span className="text-white/50 text-sm mt-1">
-                PNG, JPG, GIF, or WEBP (max 2MB)
+                PNG, JPG, GIF, WEBP, or HEIC (max 10MB)
               </span>
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/gif,image/webp"
+                accept={ACCEPTED_IMAGE_EXTENSIONS}
                 onChange={handleFileSelect}
                 className="hidden"
               />

@@ -7,8 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Upload, X } from "lucide-react";
-import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES } from "@/components/ImageCropModal";
+import { Upload, X, Loader2 } from "lucide-react";
+import {
+  MAX_FILE_SIZE,
+  ACCEPTED_IMAGE_EXTENSIONS,
+  isValidImageType,
+  normalizeImageToPng,
+} from "@/lib/imageUtils";
 
 interface StickerUploadModalProps {
   open: boolean;
@@ -32,32 +37,45 @@ export function StickerUploadModal({
   onUploadComplete,
 }: StickerUploadModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [normalizedBlob, setNormalizedBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [name, setName] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setError(null);
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setError("Invalid file type. Use PNG, JPG, GIF, or WEBP.");
+    if (!isValidImageType(file)) {
+      setError("Invalid file type. Use PNG, JPG, GIF, WEBP, or HEIC.");
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setError("File too large. Maximum 2MB.");
+      setError("File too large. Maximum 10MB.");
       return;
     }
 
     setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
     setName(file.name.replace(/\.[^/.]+$/, ""));
+    setConverting(true);
+
+    try {
+      const pngBlob = await normalizeImageToPng(file);
+      setNormalizedBlob(pngBlob);
+      setPreviewUrl(URL.createObjectURL(pngBlob));
+    } catch (err) {
+      setError("Failed to process image. Please try a different file.");
+      setSelectedFile(null);
+    } finally {
+      setConverting(false);
+    }
   };
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -107,8 +125,8 @@ export function StickerUploadModal({
           if (blob) resolve(blob);
           else reject(new Error("Failed to create blob"));
         },
-        selectedFile?.type || "image/png",
-        0.9
+        "image/png",
+        1
       );
     });
   };
@@ -130,8 +148,8 @@ export function StickerUploadModal({
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          filename: `${name}.${selectedFile.type.split("/")[1]}`,
-          contentType: selectedFile.type,
+          filename: `${name}.png`,
+          contentType: "image/png",
           groupId: groupId ?? null,
         }),
       });
@@ -145,7 +163,7 @@ export function StickerUploadModal({
 
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": selectedFile.type },
+        headers: { "Content-Type": "image/png" },
         body: croppedBlob,
       });
 
@@ -183,6 +201,7 @@ export function StickerUploadModal({
 
   const handleClose = () => {
     setSelectedFile(null);
+    setNormalizedBlob(null);
     setPreviewUrl(null);
     setCrop(undefined);
     setName("");
@@ -200,16 +219,21 @@ export function StickerUploadModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {!previewUrl ? (
+          {converting ? (
+            <div className="flex flex-col items-center justify-center w-full h-48 border-4 border-dashed border-white/30 rounded-lg">
+              <Loader2 className="w-12 h-12 text-primary animate-spin mb-2" />
+              <span className="text-white/70">Processing image...</span>
+            </div>
+          ) : !previewUrl ? (
             <label className="flex flex-col items-center justify-center w-full h-48 border-4 border-dashed border-white/30 rounded-lg cursor-pointer hover:border-primary transition-colors">
               <Upload className="w-12 h-12 text-white/50 mb-2" />
               <span className="text-white/70">Click to select image</span>
               <span className="text-white/50 text-sm mt-1">
-                PNG, JPG, GIF, or WEBP (max 2MB)
+                PNG, JPG, GIF, WEBP, or HEIC (max 10MB)
               </span>
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/gif,image/webp"
+                accept={ACCEPTED_IMAGE_EXTENSIONS}
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -220,6 +244,7 @@ export function StickerUploadModal({
                 <button
                   onClick={() => {
                     setSelectedFile(null);
+                    setNormalizedBlob(null);
                     setPreviewUrl(null);
                     setCrop(undefined);
                   }}
