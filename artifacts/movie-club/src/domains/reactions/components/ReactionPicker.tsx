@@ -62,9 +62,9 @@ export function ReactionPicker({
                     key={sticker.id}
                     onClick={() => handleSelect(sticker)}
                     className={`
-                      relative aspect-square p-2 rounded-lg transition-all
-                      hover:bg-white/20 active:scale-95
-                      ${isSelected ? "bg-primary/30 ring-2 ring-primary" : "bg-white/10"}
+                      relative aspect-square p-1 rounded-lg transition-all
+                      hover:bg-white/10 active:scale-95
+                      ${isSelected ? "ring-2 ring-primary" : ""}
                     `}
                     title={sticker.name}
                   >

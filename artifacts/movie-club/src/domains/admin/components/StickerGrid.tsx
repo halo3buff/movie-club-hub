@@ -33,7 +33,7 @@ export function StickerGrid({
       {stickers.map((sticker) => (
         <div
           key={sticker.id}
-          className="relative group aspect-square bg-card border-2 border-secondary rounded-lg overflow-hidden"
+          className="relative group aspect-square rounded-lg overflow-hidden"
         >
           <img
             src={sticker.imageUrl}
