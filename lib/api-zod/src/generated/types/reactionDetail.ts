@@ -14,4 +14,6 @@ export interface ReactionDetail {
   userId: number;
   username: string;
   createdAt: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }

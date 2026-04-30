@@ -174,6 +174,7 @@ export const GetGroupResponse = zod.object({
       role: zod.string(),
       joinedAt: zod.string(),
       watched: zod.boolean(),
+      avatarUrl: zod.string().nullish(),
     }),
   ),
   weekOf: zod.string(),
@@ -468,6 +469,7 @@ export const GetResultsResponse = zod.object({
       rating: zod.number(),
       review: zod.string().nullish(),
       updatedAt: zod.string(),
+      avatarUrl: zod.string().nullish(),
     }),
   ),
 });
@@ -774,6 +776,7 @@ export const GetReactionDetailsResponse = zod.object({
       userId: zod.number(),
       username: zod.string(),
       createdAt: zod.string(),
+      avatarUrl: zod.string().nullish(),
     }),
   ),
 });

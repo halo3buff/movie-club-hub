@@ -12,4 +12,6 @@ export interface Member {
   role: string;
   joinedAt: string;
   watched: boolean;
+  /** @nullable */
+  avatarUrl?: string | null;
 }

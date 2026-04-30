@@ -115,7 +115,7 @@ func (q *Queries) GetGroupMemberCount(ctx context.Context, groupID int32) (int64
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT m.id, m.user_id, m.group_id, m.role, m.joined_at, u.username
+SELECT m.id, m.user_id, m.group_id, m.role, m.joined_at, u.username, u.avatar_url
 FROM memberships m
 JOIN users u ON u.id = m.user_id
 WHERE m.group_id = $1
@@ -123,12 +123,13 @@ ORDER BY m.joined_at
 `
 
 type GetGroupMembersRow struct {
-	ID       int32     `json:"id"`
-	UserID   int32     `json:"user_id"`
-	GroupID  int32     `json:"group_id"`
-	Role     string    `json:"role"`
-	JoinedAt time.Time `json:"joined_at"`
-	Username string    `json:"username"`
+	ID        int32     `json:"id"`
+	UserID    int32     `json:"user_id"`
+	GroupID   int32     `json:"group_id"`
+	Role      string    `json:"role"`
+	JoinedAt  time.Time `json:"joined_at"`
+	Username  string    `json:"username"`
+	AvatarUrl *string   `json:"avatar_url"`
 }
 
 func (q *Queries) GetGroupMembers(ctx context.Context, groupID int32) ([]GetGroupMembersRow, error) {
@@ -147,6 +148,7 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupID int32) ([]GetGrou
 			&i.Role,
 			&i.JoinedAt,
 			&i.Username,
+			&i.AvatarUrl,
 		); err != nil {
 			return nil, err
 		}

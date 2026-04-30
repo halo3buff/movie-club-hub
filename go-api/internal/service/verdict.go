@@ -24,6 +24,7 @@ type Verdict struct {
 	Rating    *float32
 	Review    *string
 	Username  string
+	AvatarUrl *string
 	UpdatedAt time.Time
 }
 
@@ -303,6 +304,7 @@ func (s *VerdictService) GetVerdicts(ctx context.Context, userID, groupID int32,
 			Rating:    rating,
 			Review:    v.Review,
 			Username:  v.Username,
+			AvatarUrl: v.AvatarUrl,
 			UpdatedAt: v.UpdatedAt.Time,
 		})
 	}

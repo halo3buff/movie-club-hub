@@ -26,7 +26,7 @@ FROM memberships
 WHERE user_id = $1 AND group_id = $2;
 
 -- name: GetGroupMembers :many
-SELECT m.id, m.user_id, m.group_id, m.role, m.joined_at, u.username
+SELECT m.id, m.user_id, m.group_id, m.role, m.joined_at, u.username, u.avatar_url
 FROM memberships m
 JOIN users u ON u.id = m.user_id
 WHERE m.group_id = $1

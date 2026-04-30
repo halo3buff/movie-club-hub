@@ -327,12 +327,13 @@ func (h *Handler) GetReactionDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type reactionDetail struct {
-		ID          int64  `json:"id"`
-		StickerID   int64  `json:"stickerId"`
-		StickerName string `json:"stickerName"`
-		ImageURL    string `json:"imageUrl"`
-		Username    string `json:"username"`
-		UserID      int32  `json:"userId"`
+		ID          int64   `json:"id"`
+		StickerID   int64   `json:"stickerId"`
+		StickerName string  `json:"stickerName"`
+		ImageURL    string  `json:"imageUrl"`
+		Username    string  `json:"username"`
+		UserID      int32   `json:"userId"`
+		AvatarUrl   *string `json:"avatarUrl,omitempty"`
 	}
 
 	result := make([]reactionDetail, 0, len(reactions))
@@ -344,6 +345,7 @@ func (h *Handler) GetReactionDetails(w http.ResponseWriter, r *http.Request) {
 			ImageURL:    r.StickerImageUrl,
 			Username:    r.Username,
 			UserID:      r.UserID,
+			AvatarUrl:   r.AvatarUrl,
 		})
 	}
 

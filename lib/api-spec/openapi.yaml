@@ -1127,6 +1127,8 @@ components:
           type: string
         watched:
           type: boolean
+        avatarUrl:
+          type: ["string", "null"]
       required:
         - id
         - username
@@ -1338,6 +1340,8 @@ components:
           type: ["string", "null"]
         updatedAt:
           type: string
+        avatarUrl:
+          type: ["string", "null"]
       required:
         - username
         - rating
@@ -1813,6 +1817,8 @@ components:
           type: string
         createdAt:
           type: string
+        avatarUrl:
+          type: ["string", "null"]
       required:
         - id
         - stickerId

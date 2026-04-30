@@ -199,18 +199,20 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type memberResp struct {
-		ID       int32  `json:"id"`
-		Username string `json:"username"`
-		Role     string `json:"role"`
-		JoinedAt string `json:"joinedAt"`
-		Watched  bool   `json:"watched"`
+		ID        int32   `json:"id"`
+		Username  string  `json:"username"`
+		Role      string  `json:"role"`
+		JoinedAt  string  `json:"joinedAt"`
+		Watched   bool    `json:"watched"`
+		AvatarUrl *string `json:"avatarUrl,omitempty"`
 	}
 	memberList := make([]memberResp, 0, len(members))
 	for _, m := range members {
 		memberList = append(memberList, memberResp{
 			ID: m.UserID, Username: m.Username, Role: m.Role,
-			JoinedAt: m.JoinedAt.Format("2006-01-02T15:04:05.000Z"),
-			Watched:  watchMap[m.UserID],
+			JoinedAt:  m.JoinedAt.Format("2006-01-02T15:04:05.000Z"),
+			Watched:   watchMap[m.UserID],
+			AvatarUrl: m.AvatarUrl,
 		})
 	}
 

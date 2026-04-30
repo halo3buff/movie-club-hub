@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useReactionDetails } from "../hooks/useReactions";
 import type { ReactionSummary, ReactionDetail } from "../types";
-import { User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ReactionViewAllProps {
   open: boolean;
@@ -95,9 +95,12 @@ export function ReactionViewAll({
                 key={reaction.id}
                 className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
               >
-                <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
-                </div>
+                <Avatar className="w-10 h-10 border-2 border-primary">
+                  <AvatarImage src={reaction.avatarUrl ?? undefined} alt={reaction.username} />
+                  <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                    {reaction.username.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <span className="text-white font-medium">{reaction.username}</span>
               </div>
             ))}

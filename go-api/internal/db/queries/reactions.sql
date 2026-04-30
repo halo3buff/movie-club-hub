@@ -15,7 +15,7 @@ WHERE entity_type = $1 AND entity_id = $2 AND user_id = $3 AND sticker_id = $4;
 -- name: GetReactionsForEntity :many
 SELECT r.id, r.entity_type, r.entity_id, r.user_id, r.sticker_id, r.created_at,
        s.name AS sticker_name, s.image_url AS sticker_image_url,
-       u.username
+       u.username, u.avatar_url
 FROM reactions r
 JOIN stickers s ON s.id = r.sticker_id
 JOIN users u ON u.id = r.user_id

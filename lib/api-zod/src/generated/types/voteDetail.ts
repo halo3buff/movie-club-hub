@@ -12,4 +12,6 @@ export interface VoteDetail {
   /** @nullable */
   review?: string | null;
   updatedAt: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }

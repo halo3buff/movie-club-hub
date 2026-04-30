@@ -164,7 +164,7 @@ func (q *Queries) GetReactionSummaryForEntity(ctx context.Context, arg GetReacti
 const getReactionsForEntity = `-- name: GetReactionsForEntity :many
 SELECT r.id, r.entity_type, r.entity_id, r.user_id, r.sticker_id, r.created_at,
        s.name AS sticker_name, s.image_url AS sticker_image_url,
-       u.username
+       u.username, u.avatar_url
 FROM reactions r
 JOIN stickers s ON s.id = r.sticker_id
 JOIN users u ON u.id = r.user_id
@@ -187,6 +187,7 @@ type GetReactionsForEntityRow struct {
 	StickerName     string             `json:"sticker_name"`
 	StickerImageUrl string             `json:"sticker_image_url"`
 	Username        string             `json:"username"`
+	AvatarUrl       *string            `json:"avatar_url"`
 }
 
 func (q *Queries) GetReactionsForEntity(ctx context.Context, arg GetReactionsForEntityParams) ([]GetReactionsForEntityRow, error) {
@@ -208,6 +209,7 @@ func (q *Queries) GetReactionsForEntity(ctx context.Context, arg GetReactionsFor
 			&i.StickerName,
 			&i.StickerImageUrl,
 			&i.Username,
+			&i.AvatarUrl,
 		); err != nil {
 			return nil, err
 		}

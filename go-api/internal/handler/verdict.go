@@ -152,6 +152,7 @@ func (h *Handler) GetVerdicts(w http.ResponseWriter, r *http.Request) {
 		Review    *string `json:"review"`
 		UpdatedAt string  `json:"updatedAt"`
 		Watched   bool    `json:"watched"`
+		AvatarUrl *string `json:"avatarUrl,omitempty"`
 	}
 	votes := make([]voteEntry, 0, len(verdicts))
 	var totalRating float64
@@ -173,6 +174,7 @@ func (h *Handler) GetVerdicts(w http.ResponseWriter, r *http.Request) {
 			Review:    v.Review,
 			UpdatedAt: v.UpdatedAt.Format("2006-01-02T15:04:05.000Z"),
 			Watched:   v.Watched,
+			AvatarUrl: v.AvatarUrl,
 		}
 		if v.Rating != nil {
 			rating := float32(math.Round(float64(*v.Rating)*10) / 10)

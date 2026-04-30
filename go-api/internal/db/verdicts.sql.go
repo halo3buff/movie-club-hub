@@ -93,7 +93,7 @@ func (q *Queries) GetVerdictByID(ctx context.Context, id int64) (Verdict, error)
 
 const getVerdictsForTurn = `-- name: GetVerdictsForTurn :many
 SELECT v.id, v.turn_id, v.user_id, v.watched, v.rating, v.review, v.created_at, v.updated_at,
-       u.username
+       u.username, u.avatar_url
 FROM verdicts v
 JOIN users u ON u.id = v.user_id
 WHERE v.turn_id = $1
@@ -110,6 +110,7 @@ type GetVerdictsForTurnRow struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 	Username  string             `json:"username"`
+	AvatarUrl *string            `json:"avatar_url"`
 }
 
 func (q *Queries) GetVerdictsForTurn(ctx context.Context, turnID int64) ([]GetVerdictsForTurnRow, error) {
@@ -131,6 +132,7 @@ func (q *Queries) GetVerdictsForTurn(ctx context.Context, turnID int64) ([]GetVe
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Username,
+			&i.AvatarUrl,
 		); err != nil {
 			return nil, err
 		}

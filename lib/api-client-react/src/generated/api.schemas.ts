@@ -137,6 +137,8 @@ export interface Member {
   role: string;
   joinedAt: string;
   watched: boolean;
+  /** @nullable */
+  avatarUrl?: string | null;
 }
 
 export type GroupDetailTurnConfigExtensionsItem = {
@@ -237,6 +239,8 @@ export interface VoteDetail {
   /** @nullable */
   review?: string | null;
   updatedAt: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }
 
 export interface RatingBucket {
@@ -445,6 +449,8 @@ export interface ReactionDetail {
   userId: number;
   username: string;
   createdAt: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }
 
 export interface ReactionDetailsResponse {

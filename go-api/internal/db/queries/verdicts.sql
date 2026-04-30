@@ -10,7 +10,7 @@ WHERE id = $1;
 
 -- name: GetVerdictsForTurn :many
 SELECT v.id, v.turn_id, v.user_id, v.watched, v.rating, v.review, v.created_at, v.updated_at,
-       u.username
+       u.username, u.avatar_url
 FROM verdicts v
 JOIN users u ON u.id = v.user_id
 WHERE v.turn_id = $1

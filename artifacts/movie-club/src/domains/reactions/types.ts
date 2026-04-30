@@ -21,6 +21,7 @@ export interface ReactionDetail {
   imageUrl: string;
   username: string;
   userId: number;
+  avatarUrl?: string | null;
 }
 
 export interface ToggleReactionResult {

@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { formatShortDateET } from "@/lib/utils";
 import { TurnStatusBanner } from "@/domains/turns/components/TurnStatusBanner";
@@ -297,9 +298,12 @@ export default function GroupDetail() {
               return (
                 <div key={member.id} className="p-3 bg-secondary border-2 border-white/20 relative">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-10 h-10 bg-primary flex items-center justify-center">
-                      <User className="w-5 h-5 text-secondary" />
-                    </div>
+                    <Avatar className="w-10 h-10 border-2 border-primary">
+                      <AvatarImage src={member.avatarUrl ?? undefined} alt={member.username} />
+                      <AvatarFallback className="bg-primary text-secondary text-sm font-bold">
+                        {member.username.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-white truncate">{member.username}</p>
                       {isPicker && (
@@ -421,9 +425,21 @@ export default function GroupDetail() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 pt-2 border-t-2 border-white/20">
-                          <div className="w-8 h-8 bg-primary flex items-center justify-center">
-                            <User className="w-4 h-4 text-secondary" />
-                          </div>
+                          {slot.pickerUserId ? (
+                            <Avatar className="w-8 h-8 border-2 border-primary">
+                              <AvatarImage
+                                src={group.members.find(m => m.id === slot.pickerUserId)?.avatarUrl ?? undefined}
+                                alt={slot.pickerUsername ?? "Picker"}
+                              />
+                              <AvatarFallback className="bg-primary text-secondary text-xs font-bold">
+                                {(slot.pickerUsername ?? "??").slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          ) : (
+                            <div className="w-8 h-8 bg-primary flex items-center justify-center">
+                              <User className="w-4 h-4 text-secondary" />
+                            </div>
+                          )}
                           <span className="text-sm font-bold text-white">
                             {slot.pickerUsername ?? "Unassigned"}
                           </span>
