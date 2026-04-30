@@ -2,7 +2,6 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useReactions, useToggleReaction } from "../hooks/useReactions";
 import { ReactionPicker } from "./ReactionPicker";
-import { ReactionViewAll } from "./ReactionViewAll";
 import type { ReactionSummary } from "../types";
 
 interface ReactionBarProps {
@@ -13,8 +12,6 @@ interface ReactionBarProps {
 
 export function ReactionBar({ entityType, entityId, groupId }: ReactionBarProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [viewAllOpen, setViewAllOpen] = useState(false);
-  const [selectedSticker, setSelectedSticker] = useState<ReactionSummary | null>(null);
 
   const { data, isLoading } = useReactions(entityType, entityId);
   const toggleReaction = useToggleReaction();
@@ -27,12 +24,7 @@ export function ReactionBar({ entityType, entityId, groupId }: ReactionBarProps)
   };
 
   const handleReactionClick = (reaction: ReactionSummary) => {
-    if (reaction.userReacted) {
-      toggleReaction.mutate({ entityType, entityId, stickerId: reaction.stickerId });
-    } else {
-      setSelectedSticker(reaction);
-      setViewAllOpen(true);
-    }
+    toggleReaction.mutate({ entityType, entityId, stickerId: reaction.stickerId });
   };
 
   if (isLoading) {
@@ -82,16 +74,10 @@ export function ReactionBar({ entityType, entityId, groupId }: ReactionBarProps)
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         groupId={groupId}
-        onSelect={handleStickerSelect}
-        existingReactions={reactions}
-      />
-
-      <ReactionViewAll
-        open={viewAllOpen}
-        onOpenChange={setViewAllOpen}
         entityType={entityType}
         entityId={entityId}
-        selectedSticker={selectedSticker}
+        onSelect={handleStickerSelect}
+        existingReactions={reactions}
       />
     </>
   );
