@@ -9,7 +9,7 @@ import {
   getGetGroupStatusQueryKey,
   getGetDashboardQueryKey,
 } from "@workspace/api-client-react";
-import { useLocation, useParams } from "wouter";
+import { useLocation, useParams, useSearch } from "wouter";
 import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -40,9 +40,13 @@ export default function GroupDetail() {
   const params = useParams<{ groupId: string }>();
   const groupId = parseInt(params.groupId ?? "0", 10);
   const [, setLocation] = useLocation();
+  const search = useSearch();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [selectedWeek, setSelectedWeek] = useState("");
+
+  // Read weekOf from URL query param if present
+  const initialWeekOf = new URLSearchParams(search).get("weekOf") ?? "";
+  const [selectedWeek, setSelectedWeek] = useState(initialWeekOf);
 
   const [showMovieInput, setShowMovieInput] = useState(false);
   const [showMemberActions, setShowMemberActions] = useState<number | null>(null);
@@ -66,10 +70,10 @@ export default function GroupDetail() {
   const { data: me } = useGetMe();
 
   useEffect(() => {
-    if (group?.currentTurnWeekOf && selectedWeek === "") {
+    if (group?.currentTurnWeekOf && selectedWeek === "" && !initialWeekOf) {
       setSelectedWeek(group.currentTurnWeekOf);
     }
-  }, [group?.currentTurnWeekOf, selectedWeek]);
+  }, [group?.currentTurnWeekOf, selectedWeek, initialWeekOf]);
 
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: getGetGroupQueryKey(groupId) });
