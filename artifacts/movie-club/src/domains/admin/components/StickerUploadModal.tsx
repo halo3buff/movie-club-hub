@@ -17,7 +17,7 @@ interface StickerUploadModalProps {
 }
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const ALLOWED_TYPES = ["image/png", "image/gif", "image/webp"];
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number) {
   return centerCrop(
@@ -48,7 +48,7 @@ export function StickerUploadModal({
     setError(null);
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setError("Invalid file type. Use PNG, GIF, or WEBP.");
+      setError("Invalid file type. Use PNG, JPG, GIF, or WEBP.");
       return;
     }
 
@@ -207,11 +207,11 @@ export function StickerUploadModal({
               <Upload className="w-12 h-12 text-white/50 mb-2" />
               <span className="text-white/70">Click to select image</span>
               <span className="text-white/50 text-sm mt-1">
-                PNG, GIF, or WEBP (max 2MB)
+                PNG, JPG, GIF, or WEBP (max 2MB)
               </span>
               <input
                 type="file"
-                accept="image/png,image/gif,image/webp"
+                accept="image/png,image/jpeg,image/gif,image/webp"
                 onChange={handleFileSelect}
                 className="hidden"
               />

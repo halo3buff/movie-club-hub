@@ -17,6 +17,7 @@ const superAdminUsername = "dingle_documentary"
 
 var allowedContentTypes = map[string]string{
 	"image/png":  ".png",
+	"image/jpeg": ".jpg",
 	"image/gif":  ".gif",
 	"image/webp": ".webp",
 }
@@ -52,7 +53,7 @@ func (h *Handler) GetStickerUploadURL(w http.ResponseWriter, r *http.Request) {
 
 	ext, ok := allowedContentTypes[req.ContentType]
 	if !ok {
-		writeError(w, http.StatusBadRequest, "Invalid content type. Allowed: image/png, image/gif, image/webp")
+		writeError(w, http.StatusBadRequest, "Invalid content type. Allowed: image/png, image/jpeg, image/gif, image/webp")
 		return
 	}
 
