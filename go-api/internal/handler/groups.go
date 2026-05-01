@@ -161,12 +161,8 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 
 	// Use turns table directly for current turn
 	var currentWeekOf string
-	var currentTurn db.Turn
-	var hasCurrentTurn bool
 	if ct, err := h.q.GetCurrentTurn(r.Context(), groupID); err == nil {
-		currentTurn = ct
-		hasCurrentTurn = true
-		currentWeekOf = pgDateToString(currentTurn.WeekOf)
+		currentWeekOf = pgDateToString(ct.WeekOf)
 	} else {
 		// Fallback to computed if no current turn in DB
 		currentWeekOf = getCurrentTurnWeekOf(config)
@@ -298,7 +294,7 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 		isCurrentTurn := weekOf == currentWeekOf
 		votingOpen = (time.Now().Before(deadlineTime) && isCurrentTurn) || reviewUnlocked
 	}
-	resultsAvail := (movieErr == nil && time.Now().After(deadlineTime)) || (hasCurrentTurn && currentTurn.ReviewsUnlocked)
+	resultsAvail := (movieErr == nil && time.Now().After(deadlineTime)) || reviewUnlocked
 
 	// My vote
 	userID := h.userID(r)
