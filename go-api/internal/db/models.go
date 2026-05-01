@@ -105,11 +105,13 @@ type Turn struct {
 }
 
 type User struct {
-	ID           int32     `json:"id"`
-	Username     string    `json:"username"`
-	PasswordHash *string   `json:"password_hash"`
-	CreatedAt    time.Time `json:"created_at"`
-	AvatarUrl    *string   `json:"avatar_url"`
+	ID                  int32     `json:"id"`
+	Username            string    `json:"username"`
+	PasswordHash        *string   `json:"password_hash"`
+	CreatedAt           time.Time `json:"created_at"`
+	AvatarUrl           *string   `json:"avatar_url"`
+	LetterboxdUsername  *string   `json:"letterboxd_username"`
+	MovieLinkPreference string    `json:"movie_link_preference"`
 }
 
 type Verdict struct {

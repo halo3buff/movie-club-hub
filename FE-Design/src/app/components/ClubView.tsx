@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, Lightbulb, Settings, Fi
 import { RatingReview } from "./RatingReview";
 import { TurnResults } from "./TurnResults";
 import { VHSNoise } from "./VHSNoise";
+import { UserLink } from "./UserLink";
+import { MovieTitleLink } from "./MovieTitleLink";
 
 type SidebarView = null | "schedule" | "suggestions";
 
@@ -17,6 +19,7 @@ export function ClubView() {
       : club.turns.findIndex((t) => t.isActive)
   );
   const [sidebarView, setSidebarView] = useState<SidebarView>(null);
+  const [movieLinkPreference] = useState<"letterboxd" | "imdb">("letterboxd");
 
   if (!club) return <div>Club not found</div>;
 
@@ -32,6 +35,7 @@ export function ClubView() {
 
   const suggestions = club.suggestions.map((s) => ({
     ...movies[s.movieId],
+    nominatorId: s.nominatedBy,
     nominatedBy: users[s.nominatedBy].name,
     nominatorAvatar: users[s.nominatedBy].avatar,
   }));
@@ -136,9 +140,13 @@ export function ClubView() {
                   />
                 </div>
                 <div className="p-8 md:w-3/5 flex flex-col justify-center bg-[#001d3d]">
-                  <h2 className="text-4xl font-black text-[#FDB913] mb-4 uppercase tracking-tight">
-                    {movie.title}
-                  </h2>
+                  <MovieTitleLink
+                    title={movie.title}
+                    imdbId={undefined}
+                    preference={movieLinkPreference}
+                    className="text-4xl font-black text-[#FDB913] uppercase tracking-tight"
+                    showIcon
+                  />
                   <div className="flex flex-wrap gap-3 text-sm text-white mb-6">
                     <span className="px-4 py-2 bg-[#003087] border-2 border-[#FDB913] font-bold">
                       {movie.year}
@@ -161,14 +169,18 @@ export function ClubView() {
                     ))}
                   </div>
                   <div className="pt-4 border-t-4 border-[#003087] flex items-center gap-3">
-                    <img
-                      src={picker.avatar}
-                      alt={picker.name}
-                      className="w-12 h-12 rounded-full border-4 border-[#FDB913]"
+                    <UserLink
+                      user={{ id: picker.id, name: picker.name, avatar: picker.avatar }}
+                      showName={false}
+                      avatarSize="lg"
                     />
                     <div>
                       <p className="text-xs text-white/70 uppercase tracking-wider font-bold">Picked by</p>
-                      <p className="font-black text-white text-lg">{picker.name}</p>
+                      <UserLink
+                        user={{ id: picker.id, name: picker.name, avatar: picker.avatar }}
+                        showAvatar={false}
+                        className="text-lg"
+                      />
                     </div>
                   </div>
                 </div>
@@ -189,13 +201,17 @@ export function ClubView() {
                   return (
                     <div key={memberId} className="p-3 bg-[#003087] border-2 border-white/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <img
-                          src={member.avatar}
-                          alt={member.name}
-                          className="w-10 h-10 rounded-full border-2 border-[#FDB913]"
+                        <UserLink
+                          user={{ id: member.id, name: member.name, avatar: member.avatar }}
+                          showName={false}
+                          avatarSize="md"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-white truncate">{member.name}</p>
+                          <UserLink
+                            user={{ id: member.id, name: member.name, avatar: member.avatar }}
+                            showAvatar={false}
+                            className="text-sm truncate"
+                          />
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-xs">
@@ -276,12 +292,16 @@ export function ClubView() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <img
-                                src={p.avatar}
-                                alt={p.name}
-                                className="w-6 h-6 rounded-full border-2 border-[#FDB913]"
+                              <UserLink
+                                user={{ id: p.id, name: p.name, avatar: p.avatar }}
+                                showName={false}
+                                avatarSize="sm"
                               />
-                              <p className="font-bold text-white text-sm">{p.name}</p>
+                              <UserLink
+                                user={{ id: p.id, name: p.name, avatar: p.avatar }}
+                                showAvatar={false}
+                                className="text-sm"
+                              />
                             </div>
                             <p className="text-xs text-white/60 mt-1 font-bold">
                               {t.startDate} - {t.endDate}
@@ -295,7 +315,12 @@ export function ClubView() {
                             className="w-10 h-14 object-cover border-2 border-[#FDB913]"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate">{m.title}</p>
+                            <MovieTitleLink
+                              title={m.title}
+                              imdbId={undefined}
+                              preference={movieLinkPreference}
+                              className="text-sm font-bold text-white truncate"
+                            />
                             <p className="text-xs text-white/60 font-bold">{m.year}</p>
                           </div>
                         </div>
@@ -330,16 +355,25 @@ export function ClubView() {
                             className="w-full aspect-[16/9] object-cover"
                           />
                           <div className="p-4 bg-[#001d3d]">
-                            <h4 className="font-black text-white mb-1 uppercase">{movie.title}</h4>
+                            <MovieTitleLink
+                              title={movie.title}
+                              imdbId={undefined}
+                              preference={movieLinkPreference}
+                              className="font-black text-white uppercase"
+                            />
                             <p className="text-sm text-white/70 mb-3 font-bold">{movie.year}</p>
                             <div className="flex items-center gap-2">
-                              <img
-                                src={movie.nominatorAvatar}
-                                alt={movie.nominatedBy}
-                                className="w-6 h-6 rounded-full border-2 border-[#FDB913]"
+                              <UserLink
+                                user={{ id: movie.nominatorId, name: movie.nominatedBy, avatar: movie.nominatorAvatar }}
+                                showName={false}
+                                avatarSize="sm"
                               />
                               <p className="text-xs text-white/70 font-bold">
-                                Suggested by {movie.nominatedBy}
+                                Suggested by <UserLink
+                                  user={{ id: movie.nominatorId, name: movie.nominatedBy, avatar: movie.nominatorAvatar }}
+                                  showAvatar={false}
+                                  className="inline"
+                                />
                               </p>
                             </div>
                           </div>

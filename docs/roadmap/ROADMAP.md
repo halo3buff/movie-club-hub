@@ -7,6 +7,8 @@
 - [x] **Profile Images** — Upload profile photo stored in GCP Cloud Storage
 - [x] **Review Reactions** — Emoji reactions on reviews (e.g. "sleeper pick", "harsh")
 - [x] **Add Tests (Backend)** — Go backend test suite
+- [x] **Profile Pages** — Per-user page showing photo, reviews, ratings, and Letterboxd link
+- [x] **Movie Title Links** — Click movie title to open Letterboxd (or IMDB via user preference)
 
 ## P0 — Critical
 
@@ -15,14 +17,14 @@
 ## P1 — High
 
 - [ ] **Rating Slider Gating** — Hide rating UI until movie is marked watched; restore rating if re-watched
-- [ ] **Movie Title Links** — Click movie title to open IMDb page
+- [ ] **Settings Consolidation** — move user settings into profile page and remove standalone settings
 
 ## P2 — Medium
 
 - [ ] **Review Replies** — Nested replies one level deep
 - [ ] **Add Logo** — Design and implement brand identity
 - [ ] **Add Tests (Frontend)** — Vitest test suite for frontend
-- [ ] **Letterboxd Integration** — sync watched history and ratings from Letterboxd profiles
+- [ ] **Letterboxd Sync** — sync watched history and ratings from Letterboxd profiles (username already stored)
 
 ## P3 — Low
 

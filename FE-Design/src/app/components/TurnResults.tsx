@@ -1,6 +1,7 @@
 import { Turn } from "../data/mockData";
 import { users } from "../data/mockData";
 import { Star, TrendingUp, Award, Users } from "lucide-react";
+import { UserLink } from "./UserLink";
 
 interface TurnResultsProps {
   turn: Turn;
@@ -68,13 +69,17 @@ export function TurnResults({ turn, clubMembers }: TurnResultsProps) {
                 className="p-5 bg-[#003087] border-l-8 border-[#FDB913]"
               >
                 <div className="flex items-start gap-4 mb-3">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-14 h-14 rounded-full border-4 border-[#FDB913]"
+                  <UserLink
+                    user={{ id: user.id, name: user.name, avatar: user.avatar }}
+                    showName={false}
+                    avatarSize="lg"
                   />
                   <div className="flex-1">
-                    <p className="font-black text-white mb-2 text-lg">{user.name}</p>
+                    <UserLink
+                      user={{ id: user.id, name: user.name, avatar: user.avatar }}
+                      showAvatar={false}
+                      className="font-black text-white mb-2 text-lg"
+                    />
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((star) => (

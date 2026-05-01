@@ -35,7 +35,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, password_hash, created_at, avatar_url
+SELECT id, username, password_hash, created_at, avatar_url, letterboxd_username, movie_link_preference
 FROM users
 WHERE id = $1
 `
@@ -49,12 +49,14 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
+		&i.LetterboxdUsername,
+		&i.MovieLinkPreference,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, password_hash, created_at, avatar_url
+SELECT id, username, password_hash, created_at, avatar_url, letterboxd_username, movie_link_preference
 FROM users
 WHERE username = $1
 `
@@ -68,13 +70,26 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
+		&i.LetterboxdUsername,
+		&i.MovieLinkPreference,
 	)
 	return i, err
 }
 
+const getUserSettings = `-- name: GetUserSettings :one
+SELECT movie_link_preference FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserSettings(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRow(ctx, getUserSettings, id)
+	var movie_link_preference string
+	err := row.Scan(&movie_link_preference)
+	return movie_link_preference, err
+}
+
 const updateUserAvatar = `-- name: UpdateUserAvatar :one
 UPDATE users SET avatar_url = $1 WHERE id = $2
-RETURNING id, username, password_hash, created_at, avatar_url
+RETURNING id, username, password_hash, created_at, avatar_url, letterboxd_username, movie_link_preference
 `
 
 type UpdateUserAvatarParams struct {
@@ -91,6 +106,8 @@ func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarPara
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
+		&i.LetterboxdUsername,
+		&i.MovieLinkPreference,
 	)
 	return i, err
 }
@@ -121,6 +138,31 @@ type UpdateUserPasswordHashParams struct {
 func (q *Queries) UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error {
 	_, err := q.db.Exec(ctx, updateUserPasswordHash, arg.Username, arg.PasswordHash)
 	return err
+}
+
+const updateUserSettings = `-- name: UpdateUserSettings :one
+UPDATE users SET movie_link_preference = $2 WHERE id = $1
+RETURNING id, username, password_hash, created_at, avatar_url, letterboxd_username, movie_link_preference
+`
+
+type UpdateUserSettingsParams struct {
+	ID                  int32  `json:"id"`
+	MovieLinkPreference string `json:"movie_link_preference"`
+}
+
+func (q *Queries) UpdateUserSettings(ctx context.Context, arg UpdateUserSettingsParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserSettings, arg.ID, arg.MovieLinkPreference)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.AvatarUrl,
+		&i.LetterboxdUsername,
+		&i.MovieLinkPreference,
+	)
+	return i, err
 }
 
 const updateUsername = `-- name: UpdateUsername :exec

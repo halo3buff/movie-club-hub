@@ -19,18 +19,22 @@ type authRequest struct {
 }
 
 type userResponse struct {
-	ID        int32   `json:"id"`
-	Username  string  `json:"username"`
-	CreatedAt string  `json:"createdAt"`
-	AvatarURL *string `json:"avatarUrl,omitempty"`
+	ID                  int32   `json:"id"`
+	Username            string  `json:"username"`
+	CreatedAt           string  `json:"createdAt"`
+	AvatarURL           *string `json:"avatarUrl,omitempty"`
+	LetterboxdUsername  *string `json:"letterboxdUsername,omitempty"`
+	MovieLinkPreference string  `json:"movieLinkPreference"`
 }
 
 func toUserResponse(u db.User) userResponse {
 	return userResponse{
-		ID:        u.ID,
-		Username:  u.Username,
-		CreatedAt: u.CreatedAt.Format("2006-01-02T15:04:05.000Z"),
-		AvatarURL: u.AvatarUrl,
+		ID:                  u.ID,
+		Username:            u.Username,
+		CreatedAt:           u.CreatedAt.Format("2006-01-02T15:04:05.000Z"),
+		AvatarURL:           u.AvatarUrl,
+		LetterboxdUsername:  u.LetterboxdUsername,
+		MovieLinkPreference: u.MovieLinkPreference,
 	}
 }
 
@@ -274,7 +278,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	userID := h.userID(r)
 
-	user, err := h.q.UpdateUserAvatar(r.Context(), db.UpdateUserAvatarParams{
+	avatarRow, err := h.q.UpdateUserAvatar(r.Context(), db.UpdateUserAvatarParams{
 		AvatarUrl: &req.AvatarURL,
 		ID:        userID,
 	})
@@ -283,5 +287,39 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, toUserResponse(user))
+	writeJSON(w, http.StatusOK, toUserResponse(avatarRow))
+}
+
+type updateSettingsRequest struct {
+	MovieLinkPreference string `json:"movie_link_preference"`
+}
+
+func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.sm.GetUserID(r)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
+		return
+	}
+
+	var req updateSettingsRequest
+	if err := decodeBody(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.MovieLinkPreference != "letterboxd" && req.MovieLinkPreference != "imdb" {
+		writeError(w, http.StatusBadRequest, "movie_link_preference must be 'letterboxd' or 'imdb'")
+		return
+	}
+
+	_, err := h.q.UpdateUserSettings(r.Context(), db.UpdateUserSettingsParams{
+		ID:                  int32(userID),
+		MovieLinkPreference: req.MovieLinkPreference,
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to update settings")
+		return
+	}
+
+	writeMessage(w, http.StatusOK, "Settings updated")
 }

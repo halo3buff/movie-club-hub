@@ -3,6 +3,8 @@ import { Dashboard } from "./components/Dashboard";
 import { ClubView } from "./components/ClubView";
 import { AdminPanel } from "./components/AdminPanel";
 import { MovieSelection } from "./components/MovieSelection";
+import { UserProfile } from "./components/UserProfile";
+import { Settings } from "./components/Settings";
 
 export const router = createBrowserRouter([
   {
@@ -20,5 +22,13 @@ export const router = createBrowserRouter([
   {
     path: "/club/:clubId/select-movie",
     Component: MovieSelection,
+  },
+  {
+    path: "/user/:userId",
+    Component: UserProfile,
+  },
+  {
+    path: "/settings",
+    Component: Settings,
   },
 ]);

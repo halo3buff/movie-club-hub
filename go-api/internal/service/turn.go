@@ -253,7 +253,11 @@ func (s *TurnService) GetPicker(ctx context.Context, groupID int32, weekOf strin
 	if err != nil {
 		return db.User{}, err
 	}
-	return s.queries.GetUserByID(ctx, turn.PickerUserID)
+	row, err := s.queries.GetUserByID(ctx, turn.PickerUserID)
+	if err != nil {
+		return db.User{}, err
+	}
+	return db.User{ID: row.ID, Username: row.Username, PasswordHash: row.PasswordHash, CreatedAt: row.CreatedAt, AvatarUrl: row.AvatarUrl}, nil
 }
 
 // SetPicker overrides the picker for a turn, ensuring the turn exists first.

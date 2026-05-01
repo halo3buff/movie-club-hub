@@ -28,6 +28,7 @@ type Handler struct {
 	movieSvc       *service.MovieService
 	nominationSvc  *service.NominationService
 	gcsSvc         *service.GCSService
+	profileSvc     *service.ProfileService
 }
 
 func New(q *db.Queries, pool *pgxpool.Pool, sm *session.Manager, cfg service.Config, gcsSvc *service.GCSService) *Handler {
@@ -43,6 +44,7 @@ func New(q *db.Queries, pool *pgxpool.Pool, sm *session.Manager, cfg service.Con
 		movieSvc:       service.NewMovieService(q, cfg),
 		nominationSvc:  service.NewNominationService(q, cfg),
 		gcsSvc:         gcsSvc,
+		profileSvc:     service.NewProfileService(q),
 	}
 }
 

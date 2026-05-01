@@ -73,7 +73,11 @@ func (s *AuthService) RegisterUser(ctx context.Context, username, password strin
 			return db.User{}, err
 		}
 		// Fetch and return the updated user
-		return s.queries.GetUserByUsername(ctx, username)
+		row, err2 := s.queries.GetUserByUsername(ctx, username)
+		if err2 != nil {
+			return db.User{}, err2
+		}
+		return db.User{ID: row.ID, Username: row.Username, PasswordHash: row.PasswordHash, CreatedAt: row.CreatedAt, AvatarUrl: row.AvatarUrl}, nil
 	} else if err == nil {
 		return db.User{}, ErrUsernameTaken
 	}
@@ -111,7 +115,7 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (db.
 		return db.User{}, ErrInvalidCredentials
 	}
 
-	return user, nil
+	return db.User{ID: user.ID, Username: user.Username, PasswordHash: user.PasswordHash, CreatedAt: user.CreatedAt, AvatarUrl: user.AvatarUrl}, nil
 }
 
 // UpdatePassword verifies current password and sets new one.
@@ -170,5 +174,9 @@ func (s *AuthService) UpdateUsername(ctx context.Context, userID int32, newUsern
 		return db.User{}, err
 	}
 
-	return s.queries.GetUserByID(ctx, userID)
+	row, err := s.queries.GetUserByID(ctx, userID)
+	if err != nil {
+		return db.User{}, err
+	}
+	return db.User{ID: row.ID, Username: row.Username, PasswordHash: row.PasswordHash, CreatedAt: row.CreatedAt, AvatarUrl: row.AvatarUrl}, nil
 }

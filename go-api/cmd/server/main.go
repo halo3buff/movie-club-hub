@@ -178,6 +178,11 @@ func main() {
 			r.Post("/me/avatar/upload-url", h.GetAvatarUploadURL)
 			r.Patch("/me/avatar", h.UpdateAvatar)
 
+			// Profile routes
+			r.Get("/users/{userId}/profile", h.GetProfile)
+			r.Patch("/me/profile", h.UpdateProfile)
+			r.Patch("/me/settings", h.UpdateSettings)
+
 			r.Post("/groups/{groupId}/watch-status", h.SetWatchStatus)
 
 			// Reactions
