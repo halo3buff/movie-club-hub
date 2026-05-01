@@ -8,7 +8,7 @@ import (
 )
 
 type updateProfileRequest struct {
-	LetterboxdUsername string `json:"letterboxd_username"`
+	LetterboxdUsername string `json:"letterboxdUsername"`
 }
 
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {

@@ -291,7 +291,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 type updateSettingsRequest struct {
-	MovieLinkPreference string `json:"movie_link_preference"`
+	MovieLinkPreference string `json:"movieLinkPreference"`
 }
 
 func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
