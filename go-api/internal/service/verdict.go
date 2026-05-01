@@ -267,6 +267,8 @@ func (s *VerdictService) GetVerdicts(ctx context.Context, userID, groupID int32,
 		return nil, err
 	}
 
+	reviewsUnlocked := turn.ReviewsUnlocked
+
 	adminExt := 0
 	startOffset := 0
 	if override, err := s.queries.GetTurnOverride(ctx, db.GetTurnOverrideParams{
@@ -275,9 +277,10 @@ func (s *VerdictService) GetVerdicts(ctx context.Context, userID, groupID int32,
 	}); err == nil {
 		adminExt = int(override.ExtendedDays)
 		startOffset = int(override.StartOffsetDays)
+		reviewsUnlocked = reviewsUnlocked || override.ReviewUnlockedByAdmin
 	}
 
-	if !isResultsAvailable(weekOf, config, adminExt, startOffset) {
+	if !isResultsAvailable(weekOf, config, adminExt, startOffset) && !reviewsUnlocked {
 		return nil, errors.New("results are not available yet")
 	}
 
