@@ -1,6 +1,6 @@
 import { useGetDashboard, useGetMe, useLogout, getGetDashboardQueryKey } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, ChevronDown, UserPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +38,11 @@ export default function Dashboard() {
       },
     });
   };
+
+  const sortedGroups = useMemo(() => {
+    if (!dashboard?.groups) return undefined;
+    return [...dashboard.groups].sort((a, b) => (b.memberCount ?? 0) - (a.memberCount ?? 0));
+  }, [dashboard?.groups]);
 
   if (meLoading || dashLoading) {
     return (
@@ -102,7 +107,7 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        <GroupList groups={dashboard?.groups} isLoading={false} />
+        <GroupList groups={sortedGroups} isLoading={false} />
 
         {dashboard?.recentResults && (
           <RecentVerdictsList results={dashboard.recentResults} />

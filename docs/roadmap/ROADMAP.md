@@ -22,6 +22,7 @@
 - [ ] **Review Replies** — Nested replies one level deep
 - [ ] **Add Logo** — Design and implement brand identity
 - [ ] **Add Tests (Frontend)** — Vitest test suite for frontend
+- [ ] **Letterboxd Integration** — sync watched history and ratings from Letterboxd profiles
 
 ## P3 — Low
 
