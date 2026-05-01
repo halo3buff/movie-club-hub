@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UsernameForm } from "@/domains/auth/components/UsernameForm";
 import { PasswordForm } from "@/domains/auth/components/PasswordForm";
 import { ProfilePictureUpload } from "@/domains/auth/components/ProfilePictureUpload";
+import { LetterboxdForm } from "@/domains/auth/components/LetterboxdForm";
+import { MovieLinkPreferenceForm } from "@/domains/auth/components/MovieLinkPreferenceForm";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -53,6 +55,8 @@ export default function Profile() {
         </div>
         <UsernameForm currentUsername={me.username} />
         <PasswordForm />
+        <LetterboxdForm currentLetterboxdUsername={me.letterboxdUsername} />
+        <MovieLinkPreferenceForm currentPreference={me.movieLinkPreference} />
       </main>
     </div>
   );

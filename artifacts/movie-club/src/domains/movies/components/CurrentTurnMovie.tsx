@@ -1,7 +1,8 @@
 import { Film, Clock, Clapperboard, BookOpen, Plus, ExternalLink } from "lucide-react";
 import type { GroupDetail, GroupStatus } from "@workspace/api-client-react";
+import { useGetMe } from "@workspace/api-client-react";
 import { normalizeWeekOf } from "@/domains/turns/turnUtils";
-import { getLetterboxdUrl } from "@/lib/letterboxd";
+import { getMovieUrl } from "@/lib/letterboxd";
 
 function CountdownTimer({ deadlineMs }: { deadlineMs: number }) {
   const now = Date.now();
@@ -39,6 +40,9 @@ export function CurrentTurnMovie({
   const isPastWeek = selectedNorm < currentNorm;
   const isAdminOrOwner = group.myRole === "owner" || group.myRole === "admin";
   const movie = group.movieData;
+  const { data: me } = useGetMe();
+  const movieLinkPreference = me?.movieLinkPreference ?? "letterboxd";
+  const movieHref = movie ? getMovieUrl(movie.title, movie.imdbId, movieLinkPreference) : "";
 
   return (
     <div className="border-8 border-primary bg-card mb-8 overflow-hidden">
@@ -47,7 +51,7 @@ export function CurrentTurnMovie({
         <div className="md:w-2/5 p-4 sm:p-8 flex items-center justify-center bg-black">
           {movie?.poster ? (
             <a
-              href={getLetterboxdUrl(movie.title)}
+              href={movieHref}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -70,7 +74,7 @@ export function CurrentTurnMovie({
             <>
               <h2 className="text-2xl sm:text-4xl font-black text-primary mb-4 uppercase tracking-tight">
                 <a
-                  href={getLetterboxdUrl(movie.title)}
+                  href={movieHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:underline inline-flex items-center gap-2"
