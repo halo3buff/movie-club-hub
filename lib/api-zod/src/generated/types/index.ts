@@ -7,6 +7,7 @@
  */
 
 export * from "./activeInvite";
+export * from "./activityItem";
 export * from "./assignPickerBody";
 export * from "./createGroupBody";
 export * from "./createInviteBody";
@@ -69,4 +70,6 @@ export * from "./updateSettingsBodyMovieLinkPreference";
 export * from "./uploadUrlResponse";
 export * from "./user";
 export * from "./userMovieLinkPreference";
+export * from "./userProfile";
+export * from "./userStats";
 export * from "./voteDetail";

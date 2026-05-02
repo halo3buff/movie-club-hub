@@ -28,6 +28,7 @@ import {
   type AdminMember,
 } from "./shared";
 import { UnlockControls } from "./UnlockControls";
+import { UserLink } from "@/domains/profiles/components/UserLink";
 
 interface PickerScheduleEditorProps {
   groupId: number;
@@ -64,7 +65,7 @@ export function PickerScheduleEditor({
   const [pickerWeekEdit, setPickerWeekEdit] = useState<string | null>(null);
   const [pendingPickerMap, setPendingPickerMap] = useState<Record<string, string>>({});
   const [expandedNominationsWeek, setExpandedNominationsWeek] = useState<string | null>(null);
-  const [nominationsCache, setNominationsCache] = useState<{ [weekOf: string]: { id: number; title: string; nominatorUsername?: string }[] }>({});
+  const [nominationsCache, setNominationsCache] = useState<{ [weekOf: string]: { id: number; title: string; nominatorUserId?: number | null; nominatorUsername?: string }[] }>({});
   const [nominationsLoading, setNominationsLoading] = useState(false);
 
   const withConfirm = (message: string, action: () => void, variant: "destructive" | "warning" = "destructive") => {
@@ -97,8 +98,8 @@ export function PickerScheduleEditor({
     if (!groupId) return;
     setNominationsLoading(true);
     try {
-      const data = await apiCall<Array<{ id: number; title: string; nominatorUsername?: string | null }>>(`/api/groups/${groupId}/nominations`);
-      const noms = data.map((n) => ({ id: n.id, title: n.title, nominatorUsername: n.nominatorUsername ?? undefined }));
+      const data = await apiCall<Array<{ id: number; title: string; nominatorUserId?: number | null; nominatorUsername?: string | null }>>(`/api/groups/${groupId}/nominations`);
+      const noms = data.map((n) => ({ id: n.id, title: n.title, nominatorUserId: n.nominatorUserId ?? null, nominatorUsername: n.nominatorUsername ?? undefined }));
       setNominationsCache((prev) => ({ ...prev, pool: noms }));
     } catch (e: unknown) {
       toast({ title: "Error loading nominations", description: e instanceof Error ? e.message : "Request failed", variant: "destructive" });
@@ -369,7 +370,16 @@ export function PickerScheduleEditor({
                                   <div key={nom.id} className="flex items-center gap-2">
                                     <span className="text-foreground truncate flex-1">{nom.title}</span>
                                     {nom.nominatorUsername && (
-                                      <span className="text-muted-foreground/60 flex-shrink-0">by {nom.nominatorUsername}</span>
+                                      <span className="text-muted-foreground/60 flex-shrink-0">
+                                        by{" "}
+                                        {nom.nominatorUserId ? (
+                                          <UserLink userId={nom.nominatorUserId} className="inline">
+                                            <span className="hover:text-primary transition-colors">{nom.nominatorUsername}</span>
+                                          </UserLink>
+                                        ) : (
+                                          nom.nominatorUsername
+                                        )}
+                                      </span>
                                     )}
                                     <button
                                       className="text-destructive/70 hover:text-destructive flex-shrink-0"
@@ -434,7 +444,13 @@ export function PickerScheduleEditor({
                         ) : (
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-foreground">
-                              {entry.pickerUsername ?? <span className="text-muted-foreground/60 italic">No picker</span>}
+                              {entry.pickerUsername && entry.pickerUserId ? (
+                                <UserLink userId={entry.pickerUserId} className="inline">
+                                  <span className="hover:text-primary transition-colors">{entry.pickerUsername}</span>
+                                </UserLink>
+                              ) : (
+                                <span className="text-muted-foreground/60 italic">No picker</span>
+                              )}
                             </span>
                             <button
                               className="text-muted-foreground hover:text-foreground"

@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { UserLink } from "@/domains/profiles/components/UserLink";
 import { ReactionBar } from "@/domains/reactions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StarRating } from "@/components/ui/star-rating";
@@ -193,14 +194,18 @@ export function TurnResultsInline({ groupId, selectedWeek, members }: TurnResult
                 className="p-5 bg-secondary border-l-8 border-primary"
               >
                 <div className="flex items-start gap-4 mb-3">
-                  <Avatar className="w-12 h-12 border-2 border-primary">
-                    <AvatarImage src={vote.avatarUrl ?? undefined} alt={vote.username} />
-                    <AvatarFallback className="bg-primary text-secondary font-bold">
-                      {vote.username.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserLink userId={vote.userId}>
+                    <Avatar className="w-12 h-12 border-2 border-primary">
+                      <AvatarImage src={vote.avatarUrl ?? undefined} alt={vote.username} />
+                      <AvatarFallback className="bg-primary text-secondary font-bold">
+                        {vote.username.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </UserLink>
                   <div className="flex-1">
-                    <p className="font-black text-white mb-2 text-lg">{vote.username}</p>
+                    <UserLink userId={vote.userId} className="inline-block">
+                      <p className="font-black text-white mb-2 text-lg hover:text-primary transition-colors">{vote.username}</p>
+                    </UserLink>
                     <div className="flex items-center gap-2 mb-2">
                       <StarRating rating={vote.rating} size="sm" />
                       <span className="px-3 py-1 bg-primary border-2 border-card font-black text-secondary text-sm">
@@ -240,14 +245,18 @@ export function TurnResultsInline({ groupId, selectedWeek, members }: TurnResult
             {shameDungeonMembers.map((member) => (
               <div key={member.id} className="p-3 bg-secondary border-2 border-white/20 opacity-50">
                 <div className="flex items-center gap-2">
-                  <Avatar className="w-10 h-10 border-2 border-primary">
-                    <AvatarImage src={member.avatarUrl ?? undefined} alt={member.username} />
-                    <AvatarFallback className="bg-primary text-secondary text-sm font-bold">
-                      {member.username.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserLink userId={member.id}>
+                    <Avatar className="w-10 h-10 border-2 border-primary">
+                      <AvatarImage src={member.avatarUrl ?? undefined} alt={member.username} />
+                      <AvatarFallback className="bg-primary text-secondary text-sm font-bold">
+                        {member.username.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </UserLink>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{member.username}</p>
+                    <UserLink userId={member.id} className="block">
+                      <p className="text-sm font-bold text-white truncate hover:text-primary transition-colors">{member.username}</p>
+                    </UserLink>
                   </div>
                 </div>
               </div>

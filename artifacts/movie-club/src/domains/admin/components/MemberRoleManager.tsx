@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiCall, ConfirmDialog } from "./shared";
 import { OwnershipTransferTrigger } from "./OwnershipTransferDialog";
+import { UserLink } from "@/domains/profiles/components/UserLink";
 
 interface GroupMember {
   id: number;
@@ -92,7 +93,9 @@ export function MemberRoleManager({
               {members.map((member) => (
                 <div key={member.id} className="flex items-center justify-between py-2 border-b border-border/10 last:border-0">
                   <div>
-                    <span className="text-sm font-medium text-foreground">{member.username}</span>
+                    <UserLink userId={member.id}>
+                      <span className="text-sm font-medium text-foreground hover:text-primary transition-colors">{member.username}</span>
+                    </UserLink>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge

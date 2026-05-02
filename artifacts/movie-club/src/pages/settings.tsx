@@ -10,7 +10,7 @@ import { ProfilePictureUpload } from "@/domains/auth/components/ProfilePictureUp
 import { LetterboxdForm } from "@/domains/auth/components/LetterboxdForm";
 import { MovieLinkPreferenceForm } from "@/domains/auth/components/MovieLinkPreferenceForm";
 
-export default function Profile() {
+export default function Settings() {
   const [, setLocation] = useLocation();
   const { data: me, isLoading } = useGetMe();
 
@@ -40,7 +40,7 @@ export default function Profile() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <span className="font-serif font-semibold text-foreground">Profile Settings</span>
+            <span className="font-serif font-semibold text-foreground">Settings</span>
             <p className="text-xs text-muted-foreground">{me.username}</p>
           </div>
         </div>

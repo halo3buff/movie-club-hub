@@ -1,15 +1,26 @@
 import { Film, LogOut, Settings, Shield } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserLink } from "@/domains/profiles/components/UserLink";
 
 const SUPER_ADMIN_USERNAME = "dingle_documentary";
 
 interface DashboardHeaderProps {
+  userId?: number;
   username?: string;
-  onProfile: () => void;
+  avatarUrl?: string | null;
+  onSettings: () => void;
   onLogout: () => void;
   onSuperAdmin?: () => void;
 }
 
-export function DashboardHeader({ username, onProfile, onLogout, onSuperAdmin }: DashboardHeaderProps) {
+export function DashboardHeader({
+  userId,
+  username,
+  avatarUrl,
+  onSettings,
+  onLogout,
+  onSuperAdmin,
+}: DashboardHeaderProps) {
   const isSuperAdmin = username === SUPER_ADMIN_USERNAME;
   return (
     <header className="border-b-4 border-primary sticky top-0 z-10 bg-secondary">
@@ -38,10 +49,20 @@ export function DashboardHeader({ username, onProfile, onLogout, onSuperAdmin }:
                 <Shield className="w-5 h-5" />
               </button>
             )}
+            {typeof userId === "number" && username && (
+              <UserLink userId={userId} className="block">
+                <Avatar className="w-10 h-10 border-2 border-primary hover:border-white transition">
+                  <AvatarImage src={avatarUrl ?? undefined} alt={username} />
+                  <AvatarFallback className="bg-primary text-secondary text-sm font-black">
+                    {username.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </UserLink>
+            )}
             <button
-              onClick={onProfile}
+              onClick={onSettings}
               className="p-2.5 border-2 border-white/30 hover:border-primary bg-secondary text-white hover:text-primary transition-all"
-              title="Profile settings"
+              title="Settings"
             >
               <Settings className="w-5 h-5" />
             </button>

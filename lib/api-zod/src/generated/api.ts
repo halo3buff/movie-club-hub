@@ -136,6 +136,38 @@ export const UpdateMySettingsResponse = zod.object({
 });
 
 /**
+ * @summary Get a user's public profile (stats, top genres, recent activity)
+ */
+export const GetUserProfileParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const GetUserProfileResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  letterboxdUsername: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  stats: zod.object({
+    totalWatched: zod.number(),
+    totalReviews: zod.number(),
+    avgRating: zod.number(),
+  }),
+  topGenres: zod.array(zod.string()),
+  recentActivity: zod.array(
+    zod.object({
+      filmId: zod.number(),
+      title: zod.string(),
+      year: zod.number().nullish(),
+      posterUrl: zod.string().nullish(),
+      rating: zod.number().nullish(),
+      review: zod.string().nullish(),
+      watchedAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
  * @summary Search movies via OMDB
  */
 export const SearchMoviesQueryParams = zod.object({
@@ -500,6 +532,7 @@ export const GetResultsResponse = zod.object({
   ),
   votes: zod.array(
     zod.object({
+      userId: zod.number(),
       username: zod.string(),
       rating: zod.number(),
       review: zod.string().nullish(),

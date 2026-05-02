@@ -7,6 +7,7 @@
  */
 
 export interface VoteDetail {
+  userId: number;
   username: string;
   rating: number;
   /** @nullable */

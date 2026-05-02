@@ -63,8 +63,10 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background relative">
       <VHSNoise />
       <DashboardHeader
+        userId={me?.id}
         username={me?.username}
-        onProfile={() => setLocation("/profile")}
+        avatarUrl={me?.avatarUrl}
+        onSettings={() => setLocation("/settings")}
         onLogout={handleLogout}
         onSuperAdmin={() => setLocation("/admin/stickers")}
       />

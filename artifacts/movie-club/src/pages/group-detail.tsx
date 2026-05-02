@@ -36,6 +36,7 @@ import { NominationSheet } from "@/domains/nominations/components/NominationShee
 import { VerdictForm } from "@/domains/verdicts/components/VerdictForm";
 import { TurnResultsInline } from "@/domains/verdicts/components/TurnResultsInline";
 import { VHSNoise } from "@/components/ui/vhs-noise";
+import { UserLink } from "@/domains/profiles/components/UserLink";
 
 export default function GroupDetail() {
   const params = useParams<{ groupId: string }>();
@@ -298,14 +299,18 @@ export default function GroupDetail() {
               return (
                 <div key={member.id} className="p-3 bg-secondary border-2 border-white/20 relative">
                   <div className="flex items-center gap-2 mb-2">
-                    <Avatar className="w-10 h-10 border-2 border-primary">
-                      <AvatarImage src={member.avatarUrl ?? undefined} alt={member.username} />
-                      <AvatarFallback className="bg-primary text-secondary text-sm font-bold">
-                        {member.username.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserLink userId={member.id}>
+                      <Avatar className="w-10 h-10 border-2 border-primary">
+                        <AvatarImage src={member.avatarUrl ?? undefined} alt={member.username} />
+                        <AvatarFallback className="bg-primary text-secondary text-sm font-bold">
+                          {member.username.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </UserLink>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{member.username}</p>
+                      <UserLink userId={member.id} className="block">
+                        <p className="text-sm font-bold text-white truncate hover:text-primary transition-colors">{member.username}</p>
+                      </UserLink>
                       {isPicker && (
                         <span className="text-xs text-primary font-bold uppercase">Picker</span>
                       )}
@@ -426,23 +431,31 @@ export default function GroupDetail() {
                         </div>
                         <div className="flex items-center gap-2 pt-2 border-t-2 border-white/20">
                           {slot.pickerUserId ? (
-                            <Avatar className="w-8 h-8 border-2 border-primary">
-                              <AvatarImage
-                                src={group.members.find(m => m.id === slot.pickerUserId)?.avatarUrl ?? undefined}
-                                alt={slot.pickerUsername ?? "Picker"}
-                              />
-                              <AvatarFallback className="bg-primary text-secondary text-xs font-bold">
-                                {(slot.pickerUsername ?? "??").slice(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            <UserLink userId={slot.pickerUserId}>
+                              <Avatar className="w-8 h-8 border-2 border-primary">
+                                <AvatarImage
+                                  src={group.members.find(m => m.id === slot.pickerUserId)?.avatarUrl ?? undefined}
+                                  alt={slot.pickerUsername ?? "Picker"}
+                                />
+                                <AvatarFallback className="bg-primary text-secondary text-xs font-bold">
+                                  {(slot.pickerUsername ?? "??").slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            </UserLink>
                           ) : (
                             <div className="w-8 h-8 bg-primary flex items-center justify-center">
                               <User className="w-4 h-4 text-secondary" />
                             </div>
                           )}
-                          <span className="text-sm font-bold text-white">
-                            {slot.pickerUsername ?? "Unassigned"}
-                          </span>
+                          {slot.pickerUserId ? (
+                            <UserLink userId={slot.pickerUserId}>
+                              <span className="text-sm font-bold text-white hover:text-primary transition-colors">
+                                {slot.pickerUsername ?? "Unassigned"}
+                              </span>
+                            </UserLink>
+                          ) : (
+                            <span className="text-sm font-bold text-white">Unassigned</span>
+                          )}
                         </div>
                       </div>
                     );

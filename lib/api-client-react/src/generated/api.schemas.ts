@@ -91,6 +91,39 @@ export interface UpdateSettingsBody {
   movieLinkPreference: UpdateSettingsBodyMovieLinkPreference;
 }
 
+export interface UserStats {
+  totalWatched: number;
+  totalReviews: number;
+  avgRating: number;
+}
+
+export interface ActivityItem {
+  filmId: number;
+  title: string;
+  /** @nullable */
+  year?: number | null;
+  /** @nullable */
+  posterUrl?: string | null;
+  /** @nullable */
+  rating?: number | null;
+  /** @nullable */
+  review?: string | null;
+  watchedAt: string;
+}
+
+export interface UserProfile {
+  id: number;
+  username: string;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  letterboxdUsername?: string | null;
+  createdAt: string;
+  stats: UserStats;
+  topGenres: string[];
+  recentActivity: ActivityItem[];
+}
+
 export interface MovieSearchResult {
   imdbId: string;
   title: string;
@@ -265,6 +298,7 @@ export interface SetWatchStatusBody {
 }
 
 export interface VoteDetail {
+  userId: number;
   username: string;
   rating: number;
   /** @nullable */

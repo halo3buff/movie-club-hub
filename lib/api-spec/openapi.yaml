@@ -198,6 +198,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /users/{userId}/profile:
+    get:
+      operationId: getUserProfile
+      tags: [auth]
+      summary: Get a user's public profile (stats, top genres, recent activity)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "403":
+          description: Viewer does not share a club with the target user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /movies/search:
     get:
       operationId: searchMovies
@@ -1061,6 +1092,75 @@ components:
       required:
         - movieLinkPreference
 
+    UserStats:
+      type: object
+      properties:
+        totalWatched:
+          type: integer
+        totalReviews:
+          type: integer
+        avgRating:
+          type: number
+      required:
+        - totalWatched
+        - totalReviews
+        - avgRating
+
+    ActivityItem:
+      type: object
+      properties:
+        filmId:
+          type: integer
+        title:
+          type: string
+        year:
+          type: ["integer", "null"]
+        posterUrl:
+          type: ["string", "null"]
+        rating:
+          type: ["number", "null"]
+        review:
+          type: ["string", "null"]
+        watchedAt:
+          type: string
+          format: date-time
+      required:
+        - filmId
+        - title
+        - watchedAt
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        letterboxdUsername:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        stats:
+          $ref: "#/components/schemas/UserStats"
+        topGenres:
+          type: array
+          items:
+            type: string
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+      required:
+        - id
+        - username
+        - createdAt
+        - stats
+        - topGenres
+        - recentActivity
+
     MovieSearchResult:
       type: object
       properties:
@@ -1407,6 +1507,8 @@ components:
     VoteDetail:
       type: object
       properties:
+        userId:
+          type: integer
         username:
           type: string
         rating:
@@ -1418,6 +1520,7 @@ components:
         avatarUrl:
           type: ["string", "null"]
       required:
+        - userId
         - username
         - rating
         - updatedAt

@@ -1,12 +1,14 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { useGetMe } from "@workspace/api-client-react";
 
 import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
-import Profile from "./pages/profile";
+import Settings from "./pages/settings";
+import UserProfile from "./pages/user-profile";
 import GroupsNew from "./pages/groups-new";
 import GroupDetail from "./pages/group-detail";
 import GroupAdmin from "./pages/group-admin";
@@ -25,6 +27,13 @@ const queryClient = new QueryClient({
   },
 });
 
+function RedirectToOwnProfile() {
+  const { data: me, isLoading } = useGetMe();
+  if (isLoading) return null;
+  if (!me) return <Redirect to="/" />;
+  return <Redirect to={`/users/${me.id}`} />;
+}
+
 function App() {
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -37,7 +46,9 @@ function App() {
           <Switch>
             <Route path="/" component={Login} />
             <Route path="/dashboard" component={Dashboard} />
-            <Route path="/profile" component={Profile} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/users/:userId" component={UserProfile} />
+            <Route path="/profile" component={RedirectToOwnProfile} />
             <Route path="/admin/stickers" component={GlobalAdmin} />
             <Route path="/groups/new" component={GroupsNew} />
             <Route path="/groups/:groupId/results" component={GroupResults} />
