@@ -65,14 +65,16 @@ export function TurnResultsInline({ groupId, selectedWeek, members }: TurnResult
 
   const maxCount = Math.max(...results.distribution.map((d) => d.count), 1);
 
-  // Determine who didn't submit a rating (shame dungeon members)
-  const voterUsernames = new Set(results.votes.map((v) => v.username));
+  // Only verdicts where the member watched and submitted a rating count as votes;
+  // everyone else (no verdict, or explicitly didn't watch) goes in the shame dungeon.
+  const ratedVotes = results.votes.filter((v) => v.watched && v.rating > 0);
+  const voterUsernames = new Set(ratedVotes.map((v) => v.username));
   const shameDungeonMembers = members.filter((m) => !voterUsernames.has(m.username));
 
   // TODO: Add sorting/filtering options for reviews
   // Options to consider: by rating, by reaction count, by submission time
   // See design doc: docs/superpowers/specs/2026-04-30-inline-turn-results-design.md
-  const sortedVotes = [...results.votes].sort((a, b) => b.rating - a.rating);
+  const sortedVotes = [...ratedVotes].sort((a, b) => b.rating - a.rating);
 
   return (
     <div className="space-y-6">
@@ -188,9 +190,9 @@ export function TurnResultsInline({ groupId, selectedWeek, members }: TurnResult
           </h4>
 
           <div className="space-y-4">
-            {(sortedVotes as Array<typeof sortedVotes[number] & { id?: number }>).map((vote, i) => (
+            {sortedVotes.map((vote) => (
               <div
-                key={vote.id ?? i}
+                key={vote.id}
                 className="p-5 bg-secondary border-l-8 border-primary"
               >
                 <div className="flex items-start gap-4 mb-3">
@@ -219,15 +221,13 @@ export function TurnResultsInline({ groupId, selectedWeek, members }: TurnResult
                     "{vote.review}"
                   </p>
                 )}
-                {vote.id && (
-                  <div className="pl-16 mt-3">
-                    <ReactionBar
-                      entityType="verdict"
-                      entityId={vote.id}
-                      groupId={groupId}
-                    />
-                  </div>
-                )}
+                <div className="pl-16 mt-3">
+                  <ReactionBar
+                    entityType="verdict"
+                    entityId={vote.id}
+                    groupId={groupId}
+                  />
+                </div>
               </div>
             ))}
           </div>

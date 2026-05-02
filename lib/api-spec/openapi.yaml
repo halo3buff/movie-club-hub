@@ -1507,6 +1507,9 @@ components:
     VoteDetail:
       type: object
       properties:
+        id:
+          type: integer
+          format: int64
         userId:
           type: integer
         username:
@@ -1517,13 +1520,17 @@ components:
           type: ["string", "null"]
         updatedAt:
           type: string
+        watched:
+          type: boolean
         avatarUrl:
           type: ["string", "null"]
       required:
+        - id
         - userId
         - username
         - rating
         - updatedAt
+        - watched
 
     Results:
       type: object

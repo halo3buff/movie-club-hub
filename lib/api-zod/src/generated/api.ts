@@ -532,11 +532,13 @@ export const GetResultsResponse = zod.object({
   ),
   votes: zod.array(
     zod.object({
+      id: zod.number(),
       userId: zod.number(),
       username: zod.string(),
       rating: zod.number(),
       review: zod.string().nullish(),
       updatedAt: zod.string(),
+      watched: zod.boolean(),
       avatarUrl: zod.string().nullish(),
     }),
   ),

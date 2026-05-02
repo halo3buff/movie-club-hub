@@ -298,12 +298,14 @@ export interface SetWatchStatusBody {
 }
 
 export interface VoteDetail {
+  id: number;
   userId: number;
   username: string;
   rating: number;
   /** @nullable */
   review?: string | null;
   updatedAt: string;
+  watched: boolean;
   /** @nullable */
   avatarUrl?: string | null;
 }

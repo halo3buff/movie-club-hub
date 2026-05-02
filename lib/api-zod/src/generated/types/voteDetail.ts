@@ -7,12 +7,14 @@
  */
 
 export interface VoteDetail {
+  id: bigint;
   userId: number;
   username: string;
   rating: number;
   /** @nullable */
   review?: string | null;
   updatedAt: string;
+  watched: boolean;
   /** @nullable */
   avatarUrl?: string | null;
 }
