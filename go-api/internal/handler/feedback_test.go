@@ -459,3 +459,22 @@ func TestSubmitFeedback_ImageUploadFails_StillReturns200(t *testing.T) {
 		t.Errorf("upload[1]: got %q, want suffix /meta.json", stub.uploads[1].objectName)
 	}
 }
+
+func TestSubmitFeedback_TextUploadFails_Returns500(t *testing.T) {
+	stub := &stubStorage{configured: true, failOn: "/request.txt"}
+	h := newTestHandler(stub)
+
+	body, ct := buildMultipart(t, "feedback that should fail to save", nil, "")
+	req := httptest.NewRequest(http.MethodPost, "/api/me/feedback", body)
+	req.Header.Set("Content-Type", ct)
+
+	w := httptest.NewRecorder()
+	h.SubmitFeedback(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("status: got %d, want 500 (body=%s)", w.Code, w.Body.String())
+	}
+	if len(stub.uploads) != 0 {
+		t.Errorf("expected 0 successful uploads, got %d", len(stub.uploads))
+	}
+}
