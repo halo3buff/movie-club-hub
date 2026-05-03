@@ -29,10 +29,14 @@ type Handler struct {
 	nominationSvc  *service.NominationService
 	gcsSvc         *service.GCSService
 	profileSvc     *service.ProfileService
+
+	// feedbackStorage isolates the feedback handler from *service.GCSService
+	// for testing. Defaults to gcsSvc; tests inject a stub.
+	feedbackStorage feedbackStorage
 }
 
 func New(q *db.Queries, pool *pgxpool.Pool, sm *session.Manager, cfg service.Config, gcsSvc *service.GCSService) *Handler {
-	return &Handler{
+	h := &Handler{
 		q:              q,
 		pool:           pool,
 		sm:             sm,
@@ -46,6 +50,8 @@ func New(q *db.Queries, pool *pgxpool.Pool, sm *session.Manager, cfg service.Con
 		gcsSvc:         gcsSvc,
 		profileSvc:     service.NewProfileService(q),
 	}
+	h.feedbackStorage = gcsSvc
+	return h
 }
 
 // JSON helpers
