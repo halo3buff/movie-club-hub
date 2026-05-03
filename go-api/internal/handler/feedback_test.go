@@ -345,5 +345,113 @@ func TestSubmitFeedback_TextOnlyHappyPath(t *testing.T) {
 	}
 }
 
-// Ensure unused imports from the new helpers are not flagged — strings is used in Step 6 tests.
-var _ = strings.HasSuffix
+func validPNGBytes() []byte {
+	return []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0, 0, 0, 0, 0}
+}
+
+func validHEICBytes() []byte {
+	out := append([]byte{0x00, 0x00, 0x00, 0x20}, []byte("ftypheic")...)
+	out = append(out, make([]byte, 16)...)
+	return out
+}
+
+func TestSubmitFeedback_ImageTooLarge(t *testing.T) {
+	stub := &stubStorage{configured: true}
+	h := newTestHandler(stub)
+
+	big := make([]byte, feedbackImageMaxSize+1)
+	copy(big, validPNGBytes())
+	body, ct := buildMultipart(t, "this is a long-enough message", big, "shot.png")
+	req := httptest.NewRequest(http.MethodPost, "/api/me/feedback", body)
+	req.Header.Set("Content-Type", ct)
+	req = injectUserID(req, testUserID)
+
+	w := httptest.NewRecorder()
+	h.SubmitFeedback(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status: got %d, want %d (body=%s)", w.Code, http.StatusBadRequest, w.Body.String())
+	}
+	if len(stub.uploads) != 0 {
+		t.Errorf("expected no uploads, got %d", len(stub.uploads))
+	}
+}
+
+func TestSubmitFeedback_DisguisedFile(t *testing.T) {
+	stub := &stubStorage{configured: true}
+	h := newTestHandler(stub)
+
+	htmlBytes := []byte("<!DOCTYPE html><html><body>haha</body></html>")
+	body, ct := buildMultipart(t, "this is a long-enough message", htmlBytes, "shot.png")
+	req := httptest.NewRequest(http.MethodPost, "/api/me/feedback", body)
+	req.Header.Set("Content-Type", ct)
+	req = injectUserID(req, testUserID)
+
+	w := httptest.NewRecorder()
+	h.SubmitFeedback(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status: got %d, want %d", w.Code, http.StatusBadRequest)
+	}
+	if len(stub.uploads) != 0 {
+		t.Errorf("expected no uploads when content-sniff fails, got %d", len(stub.uploads))
+	}
+}
+
+func TestSubmitFeedback_ValidPNG(t *testing.T) {
+	stub := &stubStorage{configured: true}
+	h := newTestHandler(stub)
+
+	png := validPNGBytes()
+	body, ct := buildMultipart(t, "found a glitch on dashboard, screenshot attached", png, "shot.png")
+	req := httptest.NewRequest(http.MethodPost, "/api/me/feedback", body)
+	req.Header.Set("Content-Type", ct)
+	req = injectUserID(req, testUserID)
+
+	w := httptest.NewRecorder()
+	h.SubmitFeedback(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200 (body=%s)", w.Code, w.Body.String())
+	}
+	if len(stub.uploads) != 3 {
+		t.Fatalf("expected 3 uploads (text, meta, image), got %d", len(stub.uploads))
+	}
+	last := stub.uploads[2]
+	if !strings.HasSuffix(last.objectName, "/image.png") {
+		t.Errorf("image object name: got %q, want suffix /image.png", last.objectName)
+	}
+	if last.contentType != "image/png" {
+		t.Errorf("image content type: got %q, want image/png", last.contentType)
+	}
+	if !bytes.Equal(last.body, png) {
+		t.Errorf("image body mismatch")
+	}
+}
+
+func TestSubmitFeedback_ValidHEIC(t *testing.T) {
+	stub := &stubStorage{configured: true}
+	h := newTestHandler(stub)
+
+	heic := validHEICBytes()
+	body, ct := buildMultipart(t, "iphone screenshot of the bug attached", heic, "IMG_0042.HEIC")
+	req := httptest.NewRequest(http.MethodPost, "/api/me/feedback", body)
+	req.Header.Set("Content-Type", ct)
+	req = injectUserID(req, testUserID)
+
+	w := httptest.NewRecorder()
+	h.SubmitFeedback(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200 (body=%s)", w.Code, w.Body.String())
+	}
+	if len(stub.uploads) != 3 {
+		t.Fatalf("expected 3 uploads, got %d", len(stub.uploads))
+	}
+	if !strings.HasSuffix(stub.uploads[2].objectName, "/image.heic") {
+		t.Errorf("image object name: got %q, want suffix /image.heic", stub.uploads[2].objectName)
+	}
+	if stub.uploads[2].contentType != "image/heic" {
+		t.Errorf("image content type: got %q", stub.uploads[2].contentType)
+	}
+}
