@@ -9,6 +9,7 @@ import { PasswordForm } from "@/domains/auth/components/PasswordForm";
 import { ProfilePictureUpload } from "@/domains/auth/components/ProfilePictureUpload";
 import { LetterboxdForm } from "@/domains/auth/components/LetterboxdForm";
 import { MovieLinkPreferenceForm } from "@/domains/auth/components/MovieLinkPreferenceForm";
+import { FeedbackForm } from "@/domains/auth/components/FeedbackForm";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -57,6 +58,7 @@ export default function Settings() {
         <PasswordForm />
         <LetterboxdForm currentLetterboxdUsername={me.letterboxdUsername} />
         <MovieLinkPreferenceForm currentPreference={me.movieLinkPreference} />
+        <FeedbackForm />
       </main>
     </div>
   );
