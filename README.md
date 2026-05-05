@@ -32,6 +32,7 @@ A web app for managing a rotating movie club. Groups of people take turns pickin
 │   ├── api-client-react/      # Generated API client (React Query hooks)
 │   └── db/                    # Shared TypeScript DB schema types
 ├── scripts/                   # Workspace utility scripts
+├── run.ps1                    # Windows PowerShell task runner (mirrors make targets)
 ├── Dockerfile                 # Multi-stage production build
 ├── docker-compose.yml         # Local PostgreSQL
 └── .github/workflows/
@@ -45,50 +46,72 @@ A web app for managing a rotating movie club. Groups of people take turns pickin
 
 ## Requirements
 
-| Tool | Version | Purpose |
+| Tool | Version | Install |
 |---|---|---|
-| Go | 1.25+ | Backend |
-| Node.js | 24+ | Frontend toolchain |
-| pnpm | 9+ (via corepack) | JS package manager |
-| Docker | any recent | Local database + production image |
-| Docker Compose | v2 | Local dev orchestration |
-| sqlc | latest | Regenerate DB layer from SQL (optional) |
-| gcloud CLI | any recent | GCP deployments (optional) |
+| Go | 1.25+ | [go.dev/dl](https://go.dev/dl/) |
+| Node.js | 24+ | [nodejs.org](https://nodejs.org/) |
+| pnpm | 9+ | `corepack enable` |
+| Docker + Docker Compose v2 | any recent | [docker.com](https://www.docker.com/) |
+| air | latest | `go install github.com/air-verse/air@latest` |
+| sqlc | latest | Optional — only needed to regenerate the DB layer from SQL |
+| gcloud CLI | any recent | Optional — only needed for GCP deployments |
 
-Install pnpm via corepack if you don't have it:
-
-```sh
-corepack enable
-```
+> **Windows:** Native PowerShell is supported via `run.ps1` — WSL2 is not required. All `make` commands have a `.\run.ps1 <command>` equivalent.
 
 ## Environment variables
 
-The server reads these from the process environment. Variables marked **required** will cause the server to exit on startup if missing.
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `DATABASE_URL` | Yes | — | PostgreSQL connection string. Use `postgres://` scheme for the dev server; migrations also accept `pgx5://`. |
-| `SESSION_SECRET` | Yes (prod) | `movie-club-dev-secret` | Random secret used to sign session cookies. Set a strong value in production. |
-| `OMDB_API_KEY` | No | — | API key from [omdbapi.com](https://www.omdbapi.com/). Required for movie search to work. |
-| `PORT` | No | `8080` | HTTP port the server listens on. |
-| `LOG_LEVEL` | No | `info` | Structured log verbosity: `debug`, `info`, `warn`, or `error`. |
-| `MIGRATION_DIR` | No | `migrations` | Path to the SQL migration files. Overridden to `/migrations` in the production Docker image. |
-| `NODE_ENV` | No | — | Set to `production` to enable `Secure` flag on session cookies. |
-
-For local development create a `.env` file (not committed) or export these in your shell:
+`.env` is not committed. Copy the example file first:
 
 ```sh
-export DATABASE_URL="postgres://dev:dev@localhost:5433/movieclub?sslmode=disable"
-export SESSION_SECRET="change-me"
-export OMDB_API_KEY="your-omdb-key"
+# Mac / Linux
+cp .env.example .env
 ```
 
+```powershell
+# Windows (PowerShell)
+copy .env.example .env
+```
+
+Most values in `.env.example` work for local development with no changes. The exceptions are noted below.
+
+| Variable | Local default | What you need to do |
+|---|---|---|
+| `DATABASE_URL` | `postgres://dev:dev@localhost:5433/movieclub` | Nothing — points to the Docker container |
+| `DEV_DB_URL` | same as above | Nothing |
+| `SESSION_SECRET` | `change-me-in-development` | Nothing for local dev; set a strong random value in production |
+| `OMDB_API_KEY` | *(empty)* | **Get a free key at [omdbapi.com/apikey.aspx](https://www.omdbapi.com/apikey.aspx).** Without it the server starts fine but movie search returns no results. |
+| `PORT` | `8080` | Nothing |
+| `LOG_LEVEL` | `info` | Nothing |
+| `NODE_ENV` | `development` | Nothing for local dev |
+
+GCP variables (`GCP_PROJECT_ID`, `CLOUD_SQL_CONNECTION_NAME`, etc.) are only needed for deployment — leave them blank for local development.
+
 ## Running locally
+
+Each step shows the Mac/Linux command first, then Windows PowerShell.
+
+### 0. Verify required tools
+
+Before anything else, confirm all required tools are installed:
+
+```sh
+make check-tools
+```
+
+```powershell
+.\run.ps1 check-tools
+```
+
+This scans for `go`, `node`, `pnpm`, `docker`, and `air`, and prints install instructions for anything missing. Fix any gaps before continuing.
 
 ### 1. Install dependencies
 
 ```sh
 make install
+```
+
+```powershell
+.\run.ps1 install
 ```
 
 ### 2. Start PostgreSQL
@@ -97,7 +120,11 @@ make install
 make docker-up
 ```
 
-This starts a PostgreSQL 16 container on port `5433` (to avoid conflicting with a local install on `5432`).
+```powershell
+.\run.ps1 docker-up
+```
+
+Starts a PostgreSQL 16 container on port `5433` (avoids conflicting with a local install on `5432`). The credentials (`dev:dev`, database `movieclub`) match the defaults in `.env.example`.
 
 ### 3. Run database migrations
 
@@ -105,25 +132,139 @@ This starts a PostgreSQL 16 container on port `5433` (to avoid conflicting with 
 make migrate-up
 ```
 
-Migrations run automatically on server startup too, but running them once now means the first boot is faster.
+```powershell
+.\run.ps1 migrate-up
+```
 
-### 4. Start the backend
+Migrations also run automatically on server startup, but running them once now makes the first boot faster.
+
+### 4. (Optional) Seed test data
+
+```sh
+make seed
+```
+
+```powershell
+.\run.ps1 seed
+```
+
+Loads sample groups, films, turns, nominations, and reviews so you have real data to work with immediately. The seed creates these test accounts:
+
+| Username | Password | Notes |
+|---|---|---|
+| `ameen_gooch` | `tamerFollicle9` | Member in all 3 groups |
+| `dingle_documentary` | unknown | Owner of Thursday Night Cinema; reset if needed (see below) |
+| `film_buff_kai` | unknown | Owner of Cult Classics Club |
+| `cinephile_sara` | unknown | Owner of Sci-Fi Sundays |
+| `movieguru_omar` | unknown | Member in multiple groups |
+| `reel_talk_priya` | unknown | Member in multiple groups |
+
+To reset a password for any account:
+
+```sh
+make reset-password ENV=dev USER=dingle_documentary PASS=newpassword
+```
+
+To wipe the database and re-seed from scratch:
+
+```sh
+make seed-fresh
+```
+
+```powershell
+.\run.ps1 seed-fresh
+```
+
+### 5. Start the backend
 
 ```sh
 make dev
 ```
 
-The Go server starts on `http://localhost:8080`. It serves both the API (`/api/...`) and the embedded React SPA.
+```powershell
+.\run.ps1 dev
+```
 
-### 5. (Optional) Start the frontend dev server
+The Go server starts on `http://localhost:8080` with hot reload (via `air`). It serves both the API (`/api/...`) and the embedded React SPA.
 
-For hot module replacement during frontend work, run the Vite dev server in a second terminal:
+### 6. (Optional) Start the frontend dev server
+
+For hot module replacement during frontend work, run this in a second terminal:
 
 ```sh
 make fe-dev
 ```
 
-The dev server starts on `http://localhost:5173` and proxies API calls to the Go server.
+```powershell
+.\run.ps1 fe-dev
+```
+
+The Vite dev server starts on `http://localhost:5173` and proxies API calls to the Go server.
+
+## Viewing the database locally
+
+Once PostgreSQL is running (`make docker-up` / `.\run.ps1 docker-up`), connect any SQL client using these credentials:
+
+| Field | Value |
+|---|---|
+| Host | `localhost` |
+| Port | `5433` |
+| Database | `movieclub` |
+| Username | `dev` |
+| Password | `dev` |
+| SSL | disabled |
+
+> Port `5433` is intentional — the container maps its internal `5432` to `5433` on your machine to avoid colliding with any local PostgreSQL install.
+
+### Beekeeper Studio
+
+Free and works on Mac and Windows.
+
+1. Download from [beekeeperstudio.io](https://www.beekeeperstudio.io/)
+2. Open → **New Connection** → choose **PostgreSQL**
+3. Fill in the credentials above
+4. Click **Test** → **Connect**
+
+### DBeaver
+
+Free, works on Mac and Windows.
+
+1. Download from [dbeaver.io](https://dbeaver.io/)
+2. **Database** → **New Database Connection** → **PostgreSQL**
+3. Fill in the credentials above
+4. Click **Test Connection** (it will prompt to download the JDBC driver on first use — accept it)
+5. Click **Finish**
+
+### TablePlus
+
+Mac only (free tier available).
+
+1. Download from [tableplus.com](https://tableplus.com/)
+2. Click **+** → **PostgreSQL**
+3. Fill in the credentials above
+4. Click **Test** → **Connect**
+
+### psql (command line)
+
+If you have `psql` installed locally:
+
+```sh
+psql postgres://dev:dev@localhost:5433/movieclub
+```
+
+```powershell
+psql postgres://dev:dev@localhost:5433/movieclub
+```
+
+Or if `psql` isn't installed locally, run it through Docker:
+
+```sh
+docker exec -it $(docker ps -qf "ancestor=postgres:16-alpine") psql -U dev -d movieclub
+```
+
+```powershell
+docker exec -it (docker ps -qf "ancestor=postgres:16-alpine") psql -U dev -d movieclub
+```
 
 ## Running with Docker
 
@@ -139,10 +280,12 @@ The production image is a multi-stage build: it compiles the React frontend, the
 
 ## All available commands
 
-Run `make` (or `make help`) to see every target with a description:
-
+```sh
+make help          # Mac / Linux
 ```
-make help
+
+```powershell
+.\run.ps1 help     # Windows
 ```
 
 Key groups:
@@ -152,7 +295,7 @@ Key groups:
 | Local dev | `dev`, `fe-dev`, `fe-serve`, `install` |
 | Build | `build`, `frontend`, `copy-frontend`, `clean` |
 | Test & quality | `test`, `test-verbose`, `test-cover`, `lint`, `typecheck`, `fe-typecheck`, `sqlc` |
-| Database | `docker-up`, `docker-down`, `docker-logs`, `migrate-up`, `migrate-down`, `seed`, `db-proxy` |
+| Database | `docker-up`, `docker-down`, `docker-logs`, `migrate-up`, `migrate-down`, `seed`, `seed-fresh`, `db-proxy` |
 | Docker | `docker-build`, `docker-run` |
 | GCP | `gcp-auth`, `gcp-push`, `gcp-deploy`, `gcp-logs`, `gcp-status`, `gcp-url` |
 

@@ -1,10 +1,11 @@
 .PHONY: help \
+        check-tools \
         dev fe-dev fe-serve install \
         build frontend copy-frontend clean \
         check test test-verbose test-cover lint fe-typecheck typecheck sqlc \
         docker-up docker-down docker-logs \
         migrate-up migrate-down migrate-down-all migrate-roundtrip \
-        seed \
+        seed seed-fresh \
         db-proxy \
         docker-build docker-run \
         gcp-auth gcp-push gcp-deploy gcp-logs gcp-status gcp-url \
@@ -35,13 +36,38 @@ help: ## List all available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
+# ─── Prerequisites ────────────────────────────────────────────────────────────
+
+check-tools: ## Check all required tools are installed
+	@ok=true; \
+	for entry in \
+		"go:https://go.dev/dl/" \
+		"node:https://nodejs.org/" \
+		"pnpm:corepack enable" \
+		"docker:https://www.docker.com/" \
+		"air:go install github.com/air-verse/air@latest"; do \
+		tool=$$(echo "$$entry" | cut -d: -f1); \
+		hint=$$(echo "$$entry" | cut -d: -f2-); \
+		if command -v "$$tool" >/dev/null 2>&1; then \
+			printf '  \033[32m✓\033[0m %s\n' "$$tool"; \
+		else \
+			printf '  \033[31m✗\033[0m %s  →  %s\n' "$$tool" "$$hint"; \
+			ok=false; \
+		fi; \
+	done; \
+	if [ "$$ok" = "false" ]; then \
+		echo ""; \
+		echo "Fix the above, then re-run: make check-tools"; \
+		exit 1; \
+	fi
+
 # ─── Local Development ────────────────────────────────────────────────────────
 
 install: ## Install all pnpm dependencies
 	pnpm install
 
-dev: ## Run Go API server locally (requires postgres — run make docker-up first)
-	cd go-api && DATABASE_URL="$(DEV_DB_URL)" SESSION_SECRET="dev-secret" PORT=8080 go run ./cmd/server
+dev: ## Run Go API server locally with hot reload (requires postgres — run make docker-up first)
+	cd go-api && DATABASE_URL="$(DEV_DB_URL)" SESSION_SECRET="dev-secret" PORT=8080 air
 
 fe-dev: ## Run React frontend dev server with HMR
 	pnpm --filter movie-club dev
